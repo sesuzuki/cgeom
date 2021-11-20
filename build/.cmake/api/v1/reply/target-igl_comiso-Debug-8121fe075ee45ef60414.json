@@ -1,0 +1,213 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "libigl_comiso.a"
+		}
+	],
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"compile_igl_module",
+			"include",
+			"target_link_libraries"
+		],
+		"files" : 
+		[
+			"3rdparty/libigl/cmake/libigl.cmake",
+			"3rdparty/libigl/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 59,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 272,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 165,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 188,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 277,
+				"parent" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 186,
+				"parent" : 3
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -fPIC -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk"
+				},
+				{
+					"fragment" : "-std=c++11"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 7,
+					"define" : "IGL_STATIC_LIBRARY"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "INCLUDE_TEMPLATES"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 6,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/CoMISo/.."
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/CoMISo/../eigen"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/CoMISo/ext/gmm-4.2/include"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/cmake/../include"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/cmake/../external/eigen"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					7
+				],
+				"standard" : "11"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				2,
+				4
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 5,
+			"id" : "igl::@cd76f42097b3ee04a4ed"
+		},
+		{
+			"backtrace" : 6,
+			"id" : "CoMISo::@56da007bdada43790dd8"
+		}
+	],
+	"id" : "igl_comiso::@cd76f42097b3ee04a4ed",
+	"name" : "igl_comiso",
+	"nameOnDisk" : "libigl_comiso.a",
+	"paths" : 
+	{
+		"build" : "3rdparty/libigl",
+		"source" : "3rdparty/libigl"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				2,
+				4
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				1,
+				3,
+				5
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/include/igl/copyleft/comiso/frame_field.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/copyleft/comiso/frame_field.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/include/igl/copyleft/comiso/miq.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/copyleft/comiso/miq.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/include/igl/copyleft/comiso/nrosy.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/copyleft/comiso/nrosy.h",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

@@ -1,0 +1,224 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "libigl_opengl_glfw.a"
+		}
+	],
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"compile_igl_module",
+			"include",
+			"target_link_libraries"
+		],
+		"files" : 
+		[
+			"3rdparty/libigl/cmake/libigl.cmake",
+			"3rdparty/libigl/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 59,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 373,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 165,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 387,
+				"parent" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 188,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 186,
+				"parent" : 3
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -fPIC -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk"
+				},
+				{
+					"fragment" : "-std=c++11"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 7,
+					"define" : "IGL_STATIC_LIBRARY"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/glad/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/glfw/include"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/cmake/../include"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/cmake/../external/eigen"
+				},
+				{
+					"backtrace" : 5,
+					"isSystem" : true,
+					"path" : "/Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					7
+				],
+				"standard" : "11"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				3,
+				5
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 5,
+			"id" : "igl_opengl::@cd76f42097b3ee04a4ed"
+		},
+		{
+			"backtrace" : 6,
+			"id" : "igl::@cd76f42097b3ee04a4ed"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "glad::@60471ef752e77a6d7a4e"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "glfw::@40f25b181d90f1a28c1a"
+		}
+	],
+	"id" : "igl_opengl_glfw::@cd76f42097b3ee04a4ed",
+	"name" : "igl_opengl_glfw",
+	"nameOnDisk" : "libigl_opengl_glfw.a",
+	"paths" : 
+	{
+		"build" : "3rdparty/libigl",
+		"source" : "3rdparty/libigl"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				3,
+				5
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				4,
+				6
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/Viewer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/Viewer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/ViewerPlugin.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/background_window.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/background_window.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/map_texture.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3rdparty/libigl/include/igl/opengl/glfw/map_texture.h",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

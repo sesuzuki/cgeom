@@ -1,0 +1,167 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "libimguizmo.a"
+		}
+	],
+	"backtrace" : 3,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"include",
+			"target_link_libraries",
+			"target_compile_features"
+		],
+		"files" : 
+		[
+			"3rdparty/libigl/cmake/libigl.cmake",
+			"3rdparty/libigl/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 59,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 403,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 405,
+				"parent" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 404,
+				"parent" : 2
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -fPIC -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk"
+				},
+				{
+					"fragment" : "-std=c++11"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 4,
+					"define" : "IMGUI_IMPL_OPENGL_LOADER_GLAD"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/libigl-imgui/../imgui"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/libigl-imgui/."
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/libigl-imgui/.."
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/Users/suzuki/Code/cgeom/3rdparty/libigl/external/libigl-imgui/../imgui/backends"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					5
+				],
+				"standard" : "11"
+			},
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 4,
+			"id" : "glad::@60471ef752e77a6d7a4e"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "glfw::@40f25b181d90f1a28c1a"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "imgui::@8736f5f8dfb5d7516b30"
+		}
+	],
+	"id" : "imguizmo::@cd76f42097b3ee04a4ed",
+	"name" : "imguizmo",
+	"nameOnDisk" : "libimguizmo.a",
+	"paths" : 
+	{
+		"build" : "3rdparty/libigl",
+		"source" : "3rdparty/libigl"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"path" : "3rdparty/libigl/external/imguizmo/ImGuizmo.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"path" : "3rdparty/libigl/external/imguizmo/ImGuizmo.h",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}
