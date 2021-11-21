@@ -1,0 +1,11 @@
+/Users/suzuki/Code/cgeom/gh_src/CGeom/bin/libcgeom.dylib
+/Users/suzuki/Code/cgeom/gh_src/CGeom/bin/CGeomGH.dll
+/Users/suzuki/Code/cgeom/gh_src/CGeom/bin/CGeomGH.pdb
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.csproj.AssemblyReference.cache
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.GeneratedMSBuildEditorConfig.editorconfig
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.AssemblyInfoInputs.cache
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.AssemblyInfo.cs
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.csproj.CoreCompileInputs.cache
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.csproj.CopyComplete
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.dll
+/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/Debug/CGeomGH.pdb
