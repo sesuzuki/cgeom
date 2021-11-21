@@ -52,25 +52,12 @@ namespace CGeomGH
             Mesh m = null;
             DA.GetData(0, ref m);
 
-            Point3d[] vertices = m.Vertices.ToPoint3dArray();
-            List<int[]> faces = new List<int[]>();
-            for(int i=0; i<m.Faces.Count; i++)
-            {
-                MeshFace f = m.Faces[i];
-                if (f.IsTriangle)
-                {
-                    faces.Add(new int[] { f.A, f.B, f.C });
-                }
-                else
-                {
-                    faces.Add(new int[] { f.A, f.B, f.C });
-                    faces.Add(new int[] { f.C, f.D, f.A });
-                }
-            }
+            double[] coords = Helper.FlattenPoints(m.Vertices.ToPoint3dArray(), Helper.StorargeOrder.ColumnMajor);
+            int[] faces = Helper.FlattenFaceDate(m, Helper.StorargeOrder.ColumnMajor);
 
             double[] val1, val2;
             Vector3d[] dir1, dir2;
-            Analysis.PrincipalCurvatures(vertices, faces, out val1, out val2, out dir1, out dir2);
+            Analysis.PrincipalCurvatures(coords, faces, out val1, out val2, out dir1, out dir2);
 
             DA.SetDataList(0, val1);
             DA.SetDataList(1, val2);

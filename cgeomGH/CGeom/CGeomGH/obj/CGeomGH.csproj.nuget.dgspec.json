@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/CGeomGH.csproj": {}
+    "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/CGeomGH.csproj": {}
   },
   "projects": {
-    "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/CGeomGH.csproj": {
+    "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/CGeomGH.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/CGeomGH.csproj",
+        "projectUniqueName": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/CGeomGH.csproj",
         "projectName": "CGeomGH",
-        "projectPath": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/CGeomGH.csproj",
+        "projectPath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/CGeomGH.csproj",
         "packagesPath": "/Users/suzuki/.nuget/packages/",
-        "outputPath": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomGH/obj/",
+        "outputPath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/suzuki/.config/NuGet/NuGet.Config"
@@ -26,8 +26,8 @@
           "net48": {
             "targetAlias": "net48",
             "projectReferences": {
-              "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/CGeomLib.csproj": {
-                "projectPath": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/CGeomLib.csproj"
+              "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/CGeomLib.csproj": {
+                "projectPath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/CGeomLib.csproj"
               }
             }
           }
@@ -52,11 +52,11 @@
         }
       }
     },
-    "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/CGeomLib.csproj": {
+    "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/CGeomLib.csproj": {
       "restore": {
-        "projectUniqueName": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/CGeomLib.csproj",
+        "projectUniqueName": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/CGeomLib.csproj",
         "projectName": "CGeomLib",
-        "projectPath": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/CGeomLib.csproj",
+        "projectPath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/CGeomLib.csproj",
         "packagesPath": "/Users/suzuki/.nuget/packages/",
         "projectStyle": "PackagesConfig",
         "configFilePaths": [
@@ -70,7 +70,7 @@
             "projectReferences": {}
           }
         },
-        "packagesConfigPath": "/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/packages.config"
+        "packagesConfigPath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/packages.config"
       },
       "frameworks": {
         "net48": {}

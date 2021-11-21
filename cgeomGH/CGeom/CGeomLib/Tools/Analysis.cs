@@ -9,33 +9,13 @@ namespace CGeom.Tools
 {
     public static class Analysis
     {
-        public static void PrincipalCurvatures(IEnumerable<Point3d> vertices, IEnumerable<int[]> faces, out double[] outVal1, out double[] outVal2, out Vector3d[] outVec1, out Vector3d[] outVec2)
+        public static void PrincipalCurvatures(double[] coords, int[] faces, out double[] outVal1, out double[] outVal2, out Vector3d[] outVec1, out Vector3d[] outVec2)
         {
-            int numVertices = vertices.Count();
-            int numFaces = faces.Count();
-
-            double[] inCoords = new double[numVertices*3];
-            for(int i=0; i<numVertices; i++)
-            {
-                // Column-major storage for Eigen::MatrixXd
-                Point3d p = vertices.ElementAt(i);
-                inCoords[i] = p.X;
-                inCoords[numVertices + i] = p.Y;
-                inCoords[numVertices * 2 + i] = p.Z;
-            }
-
-            int[] inFaces = new int[numFaces * 3];
-            for (int i = 0; i < numFaces; i++)
-            {
-                // Column-major storage for Eigen::MatrixXd
-                int[] f = faces.ElementAt(i);
-                inFaces[i] = f[0];
-                inFaces[numFaces + i] = f[1];
-                inFaces[numFaces * 2 + i] = f[2];
-            }
+            int numVertices = coords.Count()/3;
+            int numFaces = faces.Count()/3;
 
             IntPtr dir1, dir2, val1, val2;
-            Kernel.Curvature.IglPrincipalCurvatures(numVertices, numFaces, inCoords, inFaces, out dir1, out dir2, out val1, out val2);
+            Kernel.Curvature.IglPrincipalCurvatures(numVertices, numFaces, coords, faces, out dir1, out dir2, out val1, out val2);
 
             // Parse principal curvatures
             outVal1 = new double[numVertices];

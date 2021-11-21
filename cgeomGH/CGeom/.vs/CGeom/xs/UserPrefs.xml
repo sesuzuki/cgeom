@@ -1,9 +1,7 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomLib/Tools/Analysis.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/PrincipalCurvaturesGH.cs">
     <Files>
-      <File FileName="CGeomGH/PrincipalCurvaturesGH.cs" Line="65" Column="18" />
-      <File FileName="CGeomLib/Tools/Analysis.cs" Line="35" Column="14" />
-      <File FileName="CGeomLib/Wrappers/Kernel.cs" Line="13" Column="44" />
+      <File FileName="CGeomGH/PrincipalCurvaturesGH.cs" Line="67" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -17,18 +15,13 @@
           </Node>
         </State>
       </Pad>
-      <Pad Id="MonoDevelop.Debugger.WatchPad">
-        <State />
-      </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/Users/suzuki/Code/cgeom/gh_src/CGeom/CGeomLib/Tools/Analysis.cs" relfile="CGeomLib/Tools/Analysis.cs" line="37" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MultiItemStartupConfigurations />
 </Properties>
