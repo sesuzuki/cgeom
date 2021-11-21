@@ -2,7 +2,7 @@
 A framework for geometric computation in Grasshopper.
 
 # Getting Started
-Clone this repository *recursively* so that its submodules are also downloaded:
+Clone this repository *recursively* to download all submodules.
 
 ```bash
 git clone --recursive https://github.com/sesuzuki/cgeom.git
