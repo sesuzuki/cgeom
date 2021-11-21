@@ -9,3 +9,10 @@ git clone --recursive https://github.com/sesuzuki/cgeom.git
 ```
 
 Build the C++ code using `cmake` and the GH plugin using Visual Studio.
+
+```bash
+cd cgeom
+mkdir build && cd build
+cmake .. -GNinja
+ninja
+```
