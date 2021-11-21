@@ -1,4 +1,4 @@
-# CGEOM
+# cgeom
 A framework for geometric computation in Grasshopper.
 
 # Getting Started
