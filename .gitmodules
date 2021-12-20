@@ -1,6 +1,3 @@
-[submodule "3rdparty/libigl"]
-	path = 3rdparty/libigl
-	url = https://github.com/libigl/libigl.git
-[submodule "3rdparty/libQEx"]
-	path = 3rdparty/libQEx
-	url = https://github.com/hcebke/libQEx.git
+[submodule "3rdparty/OpenMesh"]
+	path = 3rdparty/OpenMesh
+	url = https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git

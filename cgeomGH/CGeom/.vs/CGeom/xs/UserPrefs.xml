@@ -1,13 +1,19 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/PrincipalCurvaturesGH.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/Quantities/GaussianCurvatureGH.cs">
     <Files>
-      <File FileName="CGeomGH/PrincipalCurvaturesGH.cs" Line="67" Column="1" />
+      <File FileName="CGeomGH/Quantities/GaussianCurvatureGH.cs" Line="19" Column="37" />
+      <File FileName="CGeomGH/Quantities/MeanCurvatureGH.cs" />
+      <File FileName="CGeomGH/LaplacianSmoothingGH.cs" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
-          <Node name="CGeom" expanded="True" selected="True">
-            <Node name="CGeomGH" expanded="True" />
+          <Node name="CGeom" expanded="True">
+            <Node name="CGeomGH" expanded="True">
+              <Node name="Quantities" expanded="True">
+                <Node name="GaussianCurvatureGH.cs" selected="True" />
+              </Node>
+            </Node>
             <Node name="CGeomLib" expanded="True">
               <Node name="Tools" expanded="True" />
               <Node name="Wrappers" expanded="True" />

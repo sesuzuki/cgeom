@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using CGeom.Tools;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -17,9 +17,9 @@ namespace CGeomGH
         /// new tabs/panels will automatically be created.
         /// </summary>
         public LaplacianSmoothingGH()
-          : base("LaplacianSmoothingGH", "Nickname",
+          : base("LaplacianSmoothing", "LaplacianSmoothing",
             "LaplacianSmoothingGH description",
-            "Category", "Subcategory")
+            "CGeom", "Subcategory")
         {
         }
 
@@ -28,6 +28,8 @@ namespace CGeomGH
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Iter", "Iter", "Number of iterations.", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -35,6 +37,7 @@ namespace CGeomGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -44,6 +47,14 @@ namespace CGeomGH
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            Mesh m = null;
+            int iterations = 1;
+            DA.GetData(0, ref m);
+            DA.GetData(1, ref iterations);
+
+            DiscreteOperators.LaplacianSmoothing(iterations, ref m);
+
+            DA.SetData(0, m);
         }
 
         /// <summary>

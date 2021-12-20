@@ -24,4 +24,15 @@
   <ItemGroup>
     <ProjectReference Include="..\CGeomLib\CGeomLib.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="DiscreteQuantities\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Quantities\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="libcgeom.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

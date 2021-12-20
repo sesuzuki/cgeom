@@ -5,9 +5,18 @@ using Rhino.Geometry;
 
 namespace CGeom.Tools
 {
-    public static class Helper
+    public static class Utils
     {
         public enum StorargeOrder {RowMajor=0, ColumnMajor=1};
+
+        public static void ParseRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
+        {
+            coords = Utils.FlattenPoints(mesh.Vertices.ToPoint3dArray(), Utils.StorargeOrder.ColumnMajor);
+            faces = Utils.FlattenFaceDate(mesh, Utils.StorargeOrder.ColumnMajor);
+
+            numVertices = coords.Count() / 3;
+            numFaces = faces.Count() / 3;
+        }
 
         /// <summary>
         /// Flatten a collection of rhino points into a 1D array with a specific storage order.
