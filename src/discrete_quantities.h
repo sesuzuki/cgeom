@@ -1,4 +1,4 @@
-#define CGEOM_QUANT_API_VERSION "cgeom discrete quantities 0.1.0"
+#define CGEOM_QUANT_API_VERSION "cgeom"
 
 #if defined(CGEOM_QUANT_DLL)
 #if defined(CGEOM_QUANT_DLL_EXPORT)

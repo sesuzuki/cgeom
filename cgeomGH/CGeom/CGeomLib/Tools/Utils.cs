@@ -147,5 +147,30 @@ namespace CGeom.Tools
 
             return FlattenIntData(faces, order);
         }
+
+        /// <summary>
+        /// Build a quad mesh from flatten vertex and face data.
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <param name="quads"></param>
+        /// <returns></returns>
+        public static Mesh GetQuadMesh(double[] coords, int[] quads)
+        {
+            Mesh m = new Mesh();
+            int vCount = coords.Length / 3;
+            for (int i = 0; i < vCount; i++)
+            {
+                m.Vertices.Add(new Point3d(coords[i * 3], coords[i * 3 + 1], coords[i * 3 + 2]));
+            }
+
+            int eCount = quads.Length / 4;
+            for (int i = 0; i < eCount; i++)
+            {
+                m.Faces.AddFace(new MeshFace(quads[i * 4], quads[i * 4 + 1], quads[i * 4 + 2], quads[i * 4 + 3]));
+            }
+            m.UnifyNormals();
+
+            return m;
+        }
     }
 }

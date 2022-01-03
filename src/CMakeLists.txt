@@ -1,4 +1,4 @@
-add_library(cgeom SHARED discrete_quantities.h discrete_quantities.cc remeshing.h remeshing.cc)
+add_library(cgeom SHARED discrete_quantities.h discrete_quantities.cc parameterizations.h parameterizations.cc)
 target_link_libraries(cgeom igl::core igl::comiso libOpenMeshCored.dylib libOpenMeshToolsd.dylib libQEx.dylib)
 set_target_properties(cgeom PROPERTIES CXX_STANDARD 14)
 set_target_properties(cgeom PROPERTIES CXX_STANDARD_REQUIRED ON)

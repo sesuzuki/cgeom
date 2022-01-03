@@ -26,9 +26,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="DiscreteQuantities\" />
+    <None Remove="Parameterization\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Quantities\" />
+    <Folder Include="Parameterization\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="libcgeom.dylib">

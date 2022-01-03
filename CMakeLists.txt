@@ -9,7 +9,6 @@ project(cgeom)
 include(CMakeToolsHelpers OPTIONAL)
 
 ################################################################################
-
 list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # libigl
@@ -17,11 +16,11 @@ option(LIBIGL_WITH_COMISO            "Use CoMiso"         ON)
 include(libigl)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/dependencies/OpenMesh/include
+    ${CMAKE_SOURCE_DIR}/dependencies/OpenMesh_3_0/include
     ${CMAKE_SOURCE_DIR}/dependencies/QEx/include
     ) 
 link_directories(
-    ${CMAKE_SOURCE_DIR}/dependencies/OpenMesh/lib
+    ${CMAKE_SOURCE_DIR}/dependencies/OpenMesh_3_0/lib
     ${CMAKE_SOURCE_DIR}/dependencies/QEx/lib
 )
 
