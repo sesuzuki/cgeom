@@ -7,6 +7,10 @@
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/bin/libcgeom.dylib
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/bin/CGeom.dll
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/bin/CGeom.pdb
+/Users/suzuki/Code/cgeom/cgeomGH/bin/CGeom.dll
+/Users/suzuki/Code/cgeom/cgeomGH/bin/CGeom.pdb
+/Users/suzuki/Code/cgeom/bin/CGeom.dll
+/Users/suzuki/Code/cgeom/bin/CGeom.pdb
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/obj/Debug/CGeomLib.csproj.CoreCompileInputs.cache
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/obj/Debug/CGeom.dll
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomLib/obj/Debug/CGeom.pdb

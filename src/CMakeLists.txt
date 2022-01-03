@@ -1,5 +1,5 @@
 add_library(cgeom SHARED discrete_quantities.h discrete_quantities.cc parameterizations.h parameterizations.cc)
-target_link_libraries(cgeom igl::core igl::comiso libOpenMeshCored.dylib libOpenMeshToolsd.dylib libQEx.dylib)
+target_link_libraries(cgeom igl::core igl::comiso OpenMeshCored OpenMeshToolsd QEx)
 set_target_properties(cgeom PROPERTIES CXX_STANDARD 14)
 set_target_properties(cgeom PROPERTIES CXX_STANDARD_REQUIRED ON)
 set_target_properties(cgeom PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

@@ -5,6 +5,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(cgeom)
 
+set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+
 # CMake plugin for vscode
 include(CMakeToolsHelpers OPTIONAL)
 
@@ -15,18 +18,21 @@ list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 option(LIBIGL_WITH_COMISO            "Use CoMiso"         ON)
 include(libigl)
 
-include_directories(
-    ${CMAKE_SOURCE_DIR}/dependencies/OpenMesh_3_0/include
-    ${CMAKE_SOURCE_DIR}/dependencies/QEx/include
-    ) 
-link_directories(
-    ${CMAKE_SOURCE_DIR}/dependencies/OpenMesh_3_0/lib
-    ${CMAKE_SOURCE_DIR}/dependencies/QEx/lib
-)
+# Open Mesh 3.0 required for libQEx
+add_subdirectory(dependencies/OpenMesh)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/OpenMesh/src)
+
+# libQEx
+find_package(OpenMesh REQUIRED)
+add_subdirectory(dependencies/libQEx)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/libQEx/interfaces/c)
+
 
 ################################################################################
 # Library
 ################################################################################
+link_directories(${CMAKE_SOURCE_DIR}/bin)
+
 add_subdirectory(src)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

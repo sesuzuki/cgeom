@@ -1,22 +1,9 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomLib/Tools/Parameterizations.cs">
-    <Files>
-      <File FileName="CGeomLib/Tools/Parameterizations.cs" Line="34" Column="1" />
-      <File FileName="CGeomGH/Parameterization/IntGridParam.cs" Line="53" Column="1" />
-      <File FileName="CGeomLib/Tools/Utils.cs" Line="12" Column="28" />
-    </Files>
+  <MonoDevelop.Ide.Workbench>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
-          <Node name="CGeom" expanded="True" selected="True">
-            <Node name="CGeomGH" expanded="True">
-              <Node name="Parameterization" expanded="True" />
-            </Node>
-            <Node name="CGeomLib" expanded="True">
-              <Node name="Tools" expanded="True" />
-              <Node name="Wrappers" expanded="True" />
-            </Node>
-          </Node>
+          <Node name="CGeom" expanded="True" />
         </State>
       </Pad>
       <Pad Id="ClassPad">

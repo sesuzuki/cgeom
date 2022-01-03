@@ -1,1 +1,10 @@
 
+[submodule "dependencies/2c6852239e888744cda6efcdec5b29e0effa76d7"]
+	path = dependencies/2c6852239e888744cda6efcdec5b29e0effa76d7
+	url = https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
+[submodule "dependencies/OpenMesh"]
+	path = dependencies/OpenMesh
+	url = https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
+[submodule "dependencies/libQEx"]
+	path = dependencies/libQEx
+	url = https://github.com/hcebke/libQEx.git
