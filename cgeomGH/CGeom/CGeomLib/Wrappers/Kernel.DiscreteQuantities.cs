@@ -9,16 +9,28 @@ namespace CGeom.Wrappers
         public static class DiscreteQuantities
         {
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPrincipalCurvatures")]
-            internal static extern void CgeomPrincipalCurvatures(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out IntPtr dir1, out IntPtr dir2, out IntPtr val1, out IntPtr val2);
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerFaceAsymptoticDirections")]
+            internal static extern void CgeomPerFaceAsymptoticDirections(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out IntPtr X1Coords, out IntPtr X2Coords);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerVertexAsymptoticDirections")]
+            internal static extern void CgeomPerVertexAsymptoticDirections(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out IntPtr X1Coords, out IntPtr X2Coords);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerVertexPrincipalCurvatures")]
+            internal static extern void CgeomPerVertexPrincipalCurvatures(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out int outK1Count, out int outK2Count, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outK1, out IntPtr outK2);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerFacePrincipalCurvatures")]
+            internal static extern void CgeomPerFacePrincipalCurvatures(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out int outK1Count, out int outK2Count, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outK1, out IntPtr outK2);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomLaplacianSmoothingForOpenMesh")]
-            internal static extern void CgeomLaplacianSmoothingForOpenMesh(int numVertices, int numFaces, int numBoundaries, [In] double[] inCoords, [In] int[] inFaces, [In] int[] inBoundaries, [In] int[] inInteriors, int numIterations, out IntPtr outCoords);
+            internal static extern void CgeomLaplacianSmoothingForOpenMesh(int numVertices, int numFaces, int numBoundaries, [In] double[] inCoords, [In] int[] inFaces, [In] int[] inBoundaries, [In] int[] inInteriors, int numIterations, out int outCoordsCount, out IntPtr outCoords);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomLaplacianSmoothingForCloseMesh")]
-            internal static extern void CgeomLaplacianSmoothingForCloseMesh(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, double smoothing, int numIterations, out IntPtr outCoords);
+            internal static extern void CgeomLaplacianSmoothingForCloseMesh(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, double smoothing, int numIterations, out int outCoordsCount, out IntPtr outCoords);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomNormalsPerVertex")]

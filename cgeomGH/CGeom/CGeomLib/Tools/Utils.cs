@@ -10,13 +10,22 @@ namespace CGeom.Tools
     {
         public enum StorageOrder {RowMajor=0, ColumnMajor=1};
 
-        public static void ParseRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
+        public static void ParseTriangleRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
         {
             coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
-            faces = Utils.FlattenFaceDate(mesh, Utils.StorageOrder.ColumnMajor);
+            faces = Utils.FlattenTriaFaceData(mesh, Utils.StorageOrder.ColumnMajor);
 
             numVertices = coords.Count() / 3;
             numFaces = faces.Count() / 3;
+        }
+
+        public static void ParseQuadRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
+        {
+            coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
+            faces = Utils.FlattenQuadFaceData(mesh, Utils.StorageOrder.ColumnMajor);
+
+            numVertices = coords.Count() / 3;
+            numFaces = faces.Count() / 4;
         }
 
         /// <summary>
@@ -118,7 +127,7 @@ namespace CGeom.Tools
         /// <param name="m"></param>
         /// <param name="order"></param>
         /// <returns></returns>
-        public static int[] FlattenFaceDate(Mesh m, StorageOrder order)
+        public static int[] FlattenTriaFaceData(Mesh m, StorageOrder order)
         {
             m.Faces.ConvertQuadsToTriangles();
             int row = m.Faces.TriangleCount;
@@ -130,6 +139,24 @@ namespace CGeom.Tools
                 faces[i, 0] = f.A;
                 faces[i, 1] = f.B;
                 faces[i, 2] = f.C;
+            }
+
+            return FlattenIntData(faces, order);
+        }
+
+        public static int[] FlattenQuadFaceData(Mesh m, StorageOrder order)
+        {
+            if (m.Faces.TriangleCount > 0) throw new Exception("The mesh contains triangular faces.");
+
+            int rows = m.Faces.QuadCount;
+            int[,] faces = new int[rows, 4];
+            for (int i = 0; i < rows; i++)
+            {
+                MeshFace f = m.Faces[i];
+                faces[i, 0] = f.A;
+                faces[i, 1] = f.B;
+                faces[i, 2] = f.C;
+                faces[i, 3] = f.D;
             }
 
             return FlattenIntData(faces, order);

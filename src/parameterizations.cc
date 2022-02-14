@@ -12,8 +12,9 @@
 #include <igl/copyleft/comiso/miq.h>
 #include <igl/copyleft/comiso/nrosy.h>
 #include <igl/PI.h>
-#include <sstream>
 #include <igl/serialize.h>
+#include <igl/planarize_quad_mesh.h>
+#include <sstream>
 #include <qex.h>
 
 extern "C"
@@ -24,20 +25,22 @@ extern "C"
 namespace CGeom
 {
 
-    CGEOM_PARAM_API void cgeomParseMatrixXd(const Eigen::MatrixXd m, double **outData){
-        auto sF = m.size() * sizeof(double);
+    CGEOM_PARAM_API void cgeomParseMatrixXd(const Eigen::MatrixXd m, double **outData, size_t *outCount){
+        *outCount = m.size();
+        auto sF = *outCount * sizeof(double);
         *outData = static_cast<double *>(malloc(sF));
         std::memcpy(*outData, m.data(), sF);
     }
 
-    CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXi m, int **outData){
-        auto sF = m.size() * sizeof(int);
+    CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXi m, int **outData, size_t *outCount){
+        *outCount = m.size();
+        auto sF = *outCount * sizeof(int);
         *outData = static_cast<int *>(malloc(sF));
         std::memcpy(*outData, m.data(), sF);
     }
 
     CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, int *inConstrainedFaces, double *inConstrainedVectorFaces, 
-                                    int degree, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, double **outSingularities)
+                                    int degree, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outBarycentersCoordsCount, size_t *outSingularitiesCount, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, double **outSingularities)
     {
         // Build mesh
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -48,7 +51,7 @@ namespace CGeom
         igl::barycenter(V, F, B);
 
         // Constrain one face
-        Eigen::VectorXi b = Eigen::Map<Eigen::VectorXi>(inConstrainedFaces, 1, numConstraints); 
+        Eigen::VectorXi b = Eigen::Map<Eigen::VectorXi>(inConstrainedFaces, numConstraints, 1); 
         Eigen::MatrixXd bc = Eigen::Map<Eigen::MatrixXd>(inConstrainedVectorFaces,b.size(), 3);
 
         Eigen::MatrixXd X1,X2;                                                      // Cross field
@@ -62,14 +65,14 @@ namespace CGeom
         X2 = igl::rotate_vectors(X1, Eigen::VectorXd::Constant(1, igl::PI / 2), B1, B2);
 
         // output vector field and barycenters
-        cgeomParseMatrixXd(B, outBarycentersCoords);
-        cgeomParseMatrixXd(X1, outX1Coords);
-        cgeomParseMatrixXd(X2, outX2Coords);
-        cgeomParseMatrixXd(S, outSingularities);
+        cgeomParseMatrixXd(B, outBarycentersCoords, outBarycentersCoordsCount);
+        cgeomParseMatrixXd(X1, outX1Coords, outX1CoordsCount);
+        cgeomParseMatrixXd(X2, outX2Coords, outX2CoordsCount);
+        cgeomParseMatrixXd(S, outSingularities, outSingularitiesCount);
     }
 
     CGEOM_PARAM_API void cgeomSeamlessIntegerGridParameterization(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double *inCoordsX1, double *inCoordsX2,
-                                                                  double gradient_size, double stiffness, bool direct_round, size_t numIterations, size_t *outNumUV, size_t *outNumFUV, double **outUV, int **outFUV)
+                                                                  double gradient_size, double stiffness, bool direct_round, size_t numIterations, size_t *outUVCount, size_t *outFUVCount, double **outUV, int **outFUV)
     {
         // Build mesh
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -107,20 +110,18 @@ namespace CGeom
         igl::copyleft::comiso::miq(V, F, X1_combed, X2_combed, MMatch, isSingularity, Seams, UV, FUV,
                                    gradient_size, stiffness, direct_round, numIterations, 5, true);
 
-        *outNumUV = UV.size();
-        *outNumFUV = FUV.size();
-        cgeomParseMatrixXd(UV, outUV);
-        cgeomParseMatrixXi(FUV, outFUV);    
+        cgeomParseMatrixXd(UV, outUV, outUVCount);
+        cgeomParseMatrixXi(FUV, outFUV, outFUVCount);    
     }
 
-    CGEOM_PARAM_API void cgeomQuadMeshExtraction(const int inVertexCount, const int inTriasCount, double *inCoords, int *inTrias, double *inUV, int *inFUV, 
+    CGEOM_PARAM_API void cgeomQuadMeshExtraction(const int inVertexCount, const int inTriasCount, const int inUVCount, const int inFUVCount, double *inCoords, int *inTrias, double *inUV, int *inFUV, 
                                               size_t *outVertexCount, size_t *outQuadsCount, double **outCoords, int **outQuads){
 
         // Build mesh
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, inVertexCount, 3);
         Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inTrias, inTriasCount, 3);
-        Eigen::MatrixXd UV = Eigen::Map<Eigen::MatrixXd>(inUV, inVertexCount, 3);
-        Eigen::MatrixXi FUV = Eigen::Map<Eigen::MatrixXi>(inFUV, inTriasCount, 3);
+        Eigen::MatrixXd UV = Eigen::Map<Eigen::MatrixXd>(inUV, inUVCount, 3);
+        Eigen::MatrixXi FUV = Eigen::Map<Eigen::MatrixXi>(inFUV, inFUVCount, 3);
 
         // Initialize triangular mesh
         qex_TriMesh triMesh;
@@ -182,5 +183,15 @@ namespace CGeom
         free(quadMesh.vertices);
         free(quadMesh.quads);
     }
-    
+
+    CGEOM_PARAM_API void cgeomPlanarization(const int inVertexCount, const int inQuadsCount, double *inCoords, int *inQuads, const int iterations, const double threshold, size_t *outVertexCount, double **outCoords)
+    {
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, inVertexCount, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inQuads, inQuadsCount, 4);
+
+        Eigen::MatrixXd outV;
+        igl::planarize_quad_mesh(V, F, iterations, threshold, outV);
+
+        cgeomParseMatrixXd(outV, outCoords, outVertexCount);
+    }
 }

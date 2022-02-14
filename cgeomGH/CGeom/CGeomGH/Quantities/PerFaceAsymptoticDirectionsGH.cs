@@ -5,9 +5,9 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Parameterization
+namespace CGeomGH.Quantities
 {
-    public class NRosyGH : GH_Component
+    public class PerFaceAsymptoticDirectionsGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.Parameterization
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public NRosyGH()
-          : base("NRosy", "NRosy",
-            "Create a smooth N-RoSy field.",
-            "CGeom", "Parameterization")
+        public PerFaceAsymptoticDirectionsGH()
+          : base("PerFaceAsymptoticDirections", "FAsymptoticDirections",
+            "Computes the averages of asymptotic directions at faces.",
+            "CGeom", "Quantities")
         {
         }
 
@@ -29,8 +29,6 @@ namespace CGeomGH.Parameterization
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("ConstrainedFaces","CFace","Indexes of faces to be constrained.",GH_ParamAccess.list);
-            pManager.AddVectorParameter("ConstrainedVectors", "CVec", "Representative vectors for constrained faces (one per face).", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -38,10 +36,8 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddVectorParameter("X1", "X1", "First orthogonal vectors of the frame field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X2", "X2", "Second orthogonal vectors of the frame field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("Barycenters", "Barycenters", "Face barycenters.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Singularities", "Singularities", "Singularity index for each vertex.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Dir1", "D1", "First principal curvature direction.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Dir2", "D2", "Second principal curvature direction.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -52,26 +48,13 @@ namespace CGeomGH.Parameterization
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<int> faceIdx = new List<int>();
-            List<Vector3d> vec = new List<Vector3d>();
             DA.GetData(0, ref m);
-            DA.GetDataList(1, faceIdx);
-            DA.GetDataList(2, vec);
 
-            if (faceIdx.Count != vec.Count)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The number of constrained faces doesn't match the number of representative vectors.");
-                return;
-            }
+            Vector3d[] dir1, dir2;
+            DiscreteQuantities.PerFaceAsymptoticDirections(m, out dir1, out dir2);
 
-            Vector3d[] x1, x2, barycenters;
-            double[] singularities;
-            Parameterizations.BuildNRosy(m, faceIdx, vec, out x1, out x2, out barycenters, out singularities);
-
-            DA.SetDataList(0, x1);
-            DA.SetDataList(1, x2);
-            DA.SetDataList(2, barycenters);
-            DA.SetDataList(3, singularities);
+            DA.SetDataList(0, dir1);
+            DA.SetDataList(1, dir2);
         }
 
         /// <summary>
@@ -95,7 +78,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("8006e788-333c-41ad-8744-9655c794ff34"); }
+            get { return new Guid("f7324c1b-4081-4467-91a2-aef993b20dcd"); }
         }
     }
 }

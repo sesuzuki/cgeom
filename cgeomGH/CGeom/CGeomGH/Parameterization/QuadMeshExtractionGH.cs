@@ -18,7 +18,7 @@ namespace CGeomGH.Parameterization
         /// new tabs/panels will automatically be created.
         /// </summary>
         public QuadMeshExtractionGH()
-          : base("QuadMesh Extraction", "QMeshExtr",
+          : base("QuadMesh", "QMesh",
             "Quad mesh extraction from a given parameterization.",
             "CGeom", "Parameterization")
         {

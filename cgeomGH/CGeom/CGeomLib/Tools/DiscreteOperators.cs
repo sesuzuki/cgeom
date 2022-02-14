@@ -17,7 +17,7 @@ namespace CGeom.Tools
             double[] coords;
             int[] faces;
             int numVertices, numFaces;
-            Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             List<int> indexes = Enumerable.Range(0, numVertices).ToList();
             HashSet<int> inBoundaries = new HashSet<int>();
@@ -35,11 +35,12 @@ namespace CGeom.Tools
 
             int[] inInteriors = indexes.Except(inBoundaries).ToArray();
 
-            IntPtr ptrCoords;
-            Kernel.DiscreteQuantities.CgeomLaplacianSmoothingForOpenMesh(numVertices, numFaces, inBoundaries.Count, coords, faces, inBoundaries.ToArray(), inInteriors, numIterations, out ptrCoords);
+            IntPtr outCoords;
+            int outCoordsCount;
+            Kernel.DiscreteQuantities.CgeomLaplacianSmoothingForOpenMesh(numVertices, numFaces, inBoundaries.Count, coords, faces, inBoundaries.ToArray(), inInteriors, numIterations, out outCoordsCount, out outCoords);
 
             // Parse new vertex positions
-            ParsePointerToMeshVertices(ptrCoords, numVertices * 3, ref mesh);
+            ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
         }
 
         public static void LaplacianSmoothingForCloseMesh(int numIterations, ref Mesh mesh, double smoothing, double tolerance = 1e-3)
@@ -48,14 +49,15 @@ namespace CGeom.Tools
             double[] coords;
             int[] faces;
             int numVertices, numFaces;
-            Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
 
-            IntPtr ptrCoords;
-            Kernel.DiscreteQuantities.CgeomLaplacianSmoothingForCloseMesh(numVertices, numFaces, coords, faces, smoothing, numIterations, out ptrCoords);
+            IntPtr outCoords;
+            int outCoordsCount;
+            Kernel.DiscreteQuantities.CgeomLaplacianSmoothingForCloseMesh(numVertices, numFaces, coords, faces, smoothing, numIterations, out outCoordsCount, out outCoords);
 
             // Parse new vertex positions
-            ParsePointerToMeshVertices(ptrCoords, numVertices * 3, ref mesh);
+            ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
         }
     }
 }
