@@ -10,10 +10,16 @@
 #include <igl/doublearea.h>
 #include <igl/grad.h>
 
+#include <igl/boundary_facets.h>
+#include <igl/unique.h>
+#include <igl/setdiff.h>
+#include <igl/slice_into.h>
+#include <igl/min_quad_with_fixed.h>
 
 extern "C"
 {
 #include "discrete_quantities.h"
+#include "parameterizations.h"
 }
 
 namespace CGeom
@@ -22,7 +28,7 @@ namespace CGeom
     // Discrete Geometric Quantities And Operators
     ///////////////////////////////////////////////
 
-    CGEOM_QUANT_API void iglPrincipalCurvatures(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outDir1, double **outDir2, double **outVal1, double **outVal2)
+    CGEOM_QUANT_API void cgeomPrincipalCurvatures(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outDir1, double **outDir2, double **outVal1, double **outVal2)
     {
         // Build mesh
         Eigen::MatrixXd V;
@@ -73,7 +79,7 @@ namespace CGeom
         PV2.setZero();
     }
 
-    CGEOM_QUANT_API void iglNormalsPerVertex(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outNorm){
+    CGEOM_QUANT_API void cgeomNormalsPerVertex(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outNorm){
         // Build mesh
         Eigen::MatrixXd V;
         Eigen::MatrixXi F;
@@ -103,7 +109,7 @@ namespace CGeom
         N.setZero();
     }
     
-    CGEOM_QUANT_API void iglNormalsPerFace(const int numVertices, const int numFaces, double *inCoords, int *inFaces,  double **outNorm){
+    CGEOM_QUANT_API void cgeomNormalsPerFace(const int numVertices, const int numFaces, double *inCoords, int *inFaces,  double **outNorm){
         // Build mesh
         Eigen::MatrixXd V;
         Eigen::MatrixXi F;
@@ -133,7 +139,7 @@ namespace CGeom
         N.setZero();
     }
     
-    CGEOM_QUANT_API void iglNormalsPerCorner(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double angle,  double **outNorm){
+    CGEOM_QUANT_API void cgeomNormalsPerCorner(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double angle,  double **outNorm){
         // Build mesh
         Eigen::MatrixXd V;
         Eigen::MatrixXi F;
@@ -163,7 +169,7 @@ namespace CGeom
         N.setZero();
     }
 
-    CGEOM_QUANT_API void iglGaussianCurvature(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outK){
+    CGEOM_QUANT_API void cgeomGaussianCurvature(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outK){
         // Build mesh
         Eigen::MatrixXd V;
         Eigen::MatrixXi F;
@@ -199,7 +205,7 @@ namespace CGeom
         Minv.setZero();
     }
 
-    CGEOM_QUANT_API void iglMeanCurvature(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outH){
+    CGEOM_QUANT_API void cgeomMeanCurvature(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outH){
         // Build mesh
         Eigen::MatrixXd V;
         Eigen::MatrixXi F;
@@ -239,72 +245,85 @@ namespace CGeom
         Minv.setZero();
     }
 
-    CGEOM_QUANT_API void iglLaplacianSmoothing(const int numVertices, const int numFaces, double *inCoords, int *inFaces, int numIterations, double **outCoords){
+    CGEOM_QUANT_API void cgeomLaplacianSmoothingForOpenMesh(const int numVertices, const int numFaces, const int numBoundaries, double *inCoords, int *inFaces, int *inBoundaries, int *inInteriors, int numIterations, double **outCoords)
+    {
         // Build mesh
-        Eigen::MatrixXd V,U;
-        Eigen::MatrixXi F;
-        V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
-        F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
 
-        Eigen::SparseMatrix<double> L;
-        // Compute Laplace-Beltrami operator: #V by #V
-        igl::cotmatrix(V,F,L);
+        Eigen::VectorXi interior_vertices = Eigen::Map<Eigen::VectorXi>(inInteriors, numVertices - numBoundaries, 1);
+        Eigen::VectorXi boundary_vertices = Eigen::Map<Eigen::VectorXi>(inBoundaries, numBoundaries, 1);
 
-        // Alternative construction of same Laplacian
-        // Eigen::SparseMatrix<double> G,K;
-        // // Gradient/Divergence
-        // igl::grad(V,F,G);
-        // // Diagonal per-triangle "mass matrix"
-        // Eigen::VectorXd dblA;
-        // igl::doublearea(V,F,dblA);
-        // // Place areas along diagonal #dim times
-        // const auto & T = 1.*(dblA.replicate(3,1)*0.5).asDiagonal();
-        // // Laplacian K built as discrete divergence of gradient or equivalently
-        // // discrete Dirichelet energy Hessian
-        // K = -G.transpose() * T * G;
+        Eigen::MatrixXd A(numBoundaries, 3);
+        for (int i = 0; i < numBoundaries; i++)
+            A.row(i) = V.row(boundary_vertices(i));
 
-        U = V ;
-        for(int i=0; i<numIterations; i++){
-            // Recompute just mass matrix on each step
-            Eigen::SparseMatrix<double> M;
-            igl::massmatrix(U,F,igl::MASSMATRIX_TYPE_BARYCENTRIC,M);
-            // Solve (M-delta*L) U = M*U
-            const auto & S = (M - 0.001*L);
-            Eigen::SimplicialLLT<Eigen::SparseMatrix<double > > solver(S);
-            assert(solver.info() == Eigen::Success);
-            U = solver.solve(M*U).eval();
-            // Compute centroid and subtract (also important for numerics)
-            Eigen::VectorXd dblA;
-            igl::doublearea(U,F,dblA);
-            double area = 0.5*dblA.sum();
-            Eigen::MatrixXd BC;
-            igl::barycenter(U,F,BC);
-            Eigen::RowVector3d centroid(0,0,0);
-            for(int i = 0;i<BC.rows();i++)
-            {
-                centroid += 0.5*dblA(i)/area*BC.row(i);
-            }
-            U.rowwise() -= centroid;
-            // Normalize to unit surface area (important for numerics)
-            U.array() /= sqrt(area);
+        for (int i = 0; i < numIterations; i++)
+        {
+            // Construct and slice up Laplacian
+            Eigen::SparseMatrix<double> laplacian, laplacian_interior, laplacian_boundary;
+            igl::cotmatrix(V, F, laplacian);
+            igl::slice(laplacian, interior_vertices, interior_vertices, laplacian_interior);
+            igl::slice(laplacian, interior_vertices, boundary_vertices, laplacian_boundary);
+
+            Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> solver(-laplacian_interior);
+            const auto U = solver.solve(laplacian_boundary * A).eval();
+
+            // slice into solution
+            igl::slice_into(U, interior_vertices, Eigen::Vector3i(0, 1, 2), V);
         }
 
         // Parse data
-        auto sizeVectors = (numVertices * 3) * sizeof(double);
-        *outCoords = static_cast<double *>(malloc(sizeVectors));
-
-        std::vector<double> coord;
-        for(int i = 0; i < numVertices; i++)
-        {
-            coord.push_back(U(i,0));
-            coord.push_back(U(i,1));
-            coord.push_back(U(i,2));
-        }
-        std::memcpy(*outCoords, coord.data(), sizeVectors);
+        cgeomParseMatrixXd(V, outCoords);
 
         // Release Eigen Matrix Memory
-        V.setZero();
         F.setZero();
-        U.setZero();
+        V.setZero();
+    }
+
+    CGEOM_QUANT_API void cgeomLaplacianSmoothingForCloseMesh(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double smoothing, int numIterations, double **outCoords)
+    {
+        // Build mesh
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+
+        Eigen::SparseMatrix<double> L;
+        igl::cotmatrix(V, F, L);
+
+        for (int i = 0; i < numIterations; i++)
+        {
+            // Recompute just mass matrix on each step
+            Eigen::SparseMatrix<double> M;
+            igl::massmatrix(V, F, igl::MASSMATRIX_TYPE_BARYCENTRIC, M);
+
+            // Solve (M-delta*L) U = M*U
+            const auto &S = (M - smoothing * L);
+            Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> solver(S);
+            assert(solver.info() == Eigen::Success);
+            V = solver.solve(M * V).eval();
+
+            // Compute centroid and subtract (also important for numerics)
+            Eigen::VectorXd dblA;
+            igl::doublearea(V, F, dblA);
+            double area = 0.5 * dblA.sum();
+            Eigen::MatrixXd BC;
+            igl::barycenter(V, F, BC);
+            Eigen::RowVector3d centroid(0, 0, 0);
+            for (int i = 0; i < BC.rows(); i++)
+            {
+                centroid += 0.5 * dblA(i) / area * BC.row(i);
+            }
+            V.rowwise() -= centroid;
+            // Normalize to unit surface area (important for numerics)
+            V.array() /= sqrt(area);
+            V.rowwise() += centroid;
+        }
+
+        // Parse data
+        cgeomParseMatrixXd(V, outCoords);
+
+        // Release Eigen Matrix Memory
+        F.setZero();
+        V.setZero();
     }
 }

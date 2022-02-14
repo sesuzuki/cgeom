@@ -17,9 +17,9 @@ namespace CGeomGH.Quantities
         /// new tabs/panels will automatically be created.
         /// </summary>
         public MeanCurvatureGH()
-          : base("MeanCurvatureGH", "Nickname",
-            "MeanCurvatureGH description",
-            "CGeom", "Subcategory")
+          : base("MeanCurvature", "MeanCurv",
+            "Compute the Mean curvature of a given mesh.",
+            "CGeom", "Quantities")
         {
         }
 
@@ -28,7 +28,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Mean", "Mean", "Mean curvature", GH_ParamAccess.list);
+            pManager.AddNumberParameter("MeanCurvature", "Mean", "Mean curvature", GH_ParamAccess.list);
         }
 
         /// <summary>

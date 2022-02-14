@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using CGeom.Tools;
+
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using CGeom.Tools;
 
-namespace CGeomGH
+namespace CGeomGH.Parameterization
 {
-    public class LaplacianSmoothingGH : GH_Component
+    public class SeamlessIntegerGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +17,10 @@ namespace CGeomGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public LaplacianSmoothingGH()
-          : base("LaplacianSmoothing", "LaplacianSmoothing",
-            "LaplacianSmoothingGH description",
-            "CGeom", "Subcategory")
+        public SeamlessIntegerGH()
+          : base("SIG Parameterization", "SIGParam",
+            "Seamless Integer Grid Parameterization",
+            "CGeom", "Parameterization")
         {
         }
 
@@ -28,8 +29,13 @@ namespace CGeomGH
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Iter", "Iter", "Number of iterations.", GH_ParamAccess.item, 1);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddVectorParameter("X1", "X1", "First orthogonal vectors of the frame field.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("X2", "X2", "Second orthogonal vectors of the frame field.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("GradSize","GradSize","Gradient size.", GH_ParamAccess.item,10);
+            pManager.AddNumberParameter("Stiffness", "Stiffness", "Stiffness", GH_ParamAccess.item,5.0);
+            pManager.AddBooleanParameter("Round", "Round", "Direct round", GH_ParamAccess.item, false);
+            pManager.AddIntegerParameter("Iterations", "Iter", "Number of iterations", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -37,7 +43,8 @@ namespace CGeomGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddVectorParameter("UV", "UV", "UV parameterization.", GH_ParamAccess.list);
+            pManager.AddMeshFaceParameter("FUV", "FUV", "Indexes of UV parameters per mesh face.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -48,13 +55,26 @@ namespace CGeomGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            int iterations = 1;
+            List<Vector3d> X1 = new List<Vector3d>();
+            List<Vector3d> X2 = new List<Vector3d>();
+            double gradient_size = 10;
+            int iter = 0;
+            double stiffness = 5.0;
+            bool direct_round = false;
             DA.GetData(0, ref m);
-            DA.GetData(1, ref iterations);
+            DA.GetDataList(1, X1);
+            DA.GetDataList(2, X2);
+            DA.GetData(3, ref gradient_size);
+            DA.GetData(4, ref stiffness);
+            DA.GetData(5, ref direct_round);
+            DA.GetData(6, ref iter);
 
-            DiscreteOperators.LaplacianSmoothing(iterations, ref m);
+            Vector3d[] UV;
+            MeshFace[] FUV;
+            Parameterizations.BuildSeamlessIntegerParameterization(m, X1, X2, gradient_size, stiffness, direct_round, iter, out UV, out FUV);
 
-            DA.SetData(0, m);
+            DA.SetDataList(0, UV);
+            DA.SetDataList(1, FUV);
         }
 
         /// <summary>
@@ -78,7 +98,7 @@ namespace CGeomGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("ffd6bbda-4c77-4c4d-acb4-a035289388ca"); }
+            get { return new Guid("1baf7a04-a76b-49bd-b47f-720611c80b38"); }
         }
     }
 }

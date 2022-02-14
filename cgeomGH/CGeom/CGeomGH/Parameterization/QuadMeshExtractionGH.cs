@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using CGeom.Tools;
+
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using CGeom.Tools;
 
-namespace CGeomGH.Quantities
+namespace CGeomGH.Parameterization
 {
-    public class PrincipalCurvaturesGH : GH_Component
+    public class QuadMeshExtractionGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +17,10 @@ namespace CGeomGH.Quantities
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public PrincipalCurvaturesGH()
-          : base("PrincipalCurvatures", "PC",
-            "PrincipalCurvaturesGH description",
-            "CGeom", "Subcategory")
+        public QuadMeshExtractionGH()
+          : base("QuadMesh Extraction", "QMeshExtr",
+            "Quad mesh extraction from a given parameterization.",
+            "CGeom", "Parameterization")
         {
         }
 
@@ -28,7 +29,9 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddVectorParameter("UV", "UV", "UV parameterization", GH_ParamAccess.list);
+            pManager.AddMeshFaceParameter("FUV", "FUV", "UV indexes per face", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -36,10 +39,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Val1", "Val1", "", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Val2", "Val2", "", GH_ParamAccess.list);
-            pManager.AddVectorParameter("Dir1", "Dir1", "", GH_ParamAccess.list);
-            pManager.AddVectorParameter("Dir2", "Dir2", "", GH_ParamAccess.list);
+            pManager.AddMeshParameter("QuadMesh", "QMesh", "Quadrangulated mesh", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -50,16 +50,15 @@ namespace CGeomGH.Quantities
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
+            List<Vector3d> uv = new List<Vector3d>();
+            List<MeshFace> fuv = new List<MeshFace>();
             DA.GetData(0, ref m);
+            DA.GetDataList(1, uv);
+            DA.GetDataList(2, fuv);
 
-            double[] val1, val2;
-            Vector3d[] dir1, dir2;
-            DiscreteQuantities.PrincipalCurvatures(m, out val1, out val2, out dir1, out dir2);
+            Mesh qm = Parameterizations.QuadMeshExtraction(m, uv, fuv);
 
-            DA.SetDataList(0, val1);
-            DA.SetDataList(1, val2);
-            DA.SetDataList(2, dir1);
-            DA.SetDataList(3, dir2);
+            DA.SetData(0, qm);
         }
 
         /// <summary>
@@ -83,7 +82,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("7aae8316-d918-4691-a42f-cec383b9b851"); }
+            get { return new Guid("cfe84ada-7bb8-448b-a8f5-d5385947d2ad"); }
         }
     }
 }

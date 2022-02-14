@@ -5,9 +5,9 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Quantities
+namespace CGeomGH.Processing
 {
-    public class PerCornerNormalsGH : GH_Component
+    public class LaplacianForOpenMeshGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.Quantities
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public PerCornerNormalsGH()
-          : base("PerCornerNormals", "CNormals",
-            "Computes the area-weighted average of normals at incident faces whose normals deviate less than the provided angle.",
-            "CGeom", "Quantities")
+        public LaplacianForOpenMeshGH()
+          : base("LaplacianOpenMesh", "LaplacianOpenMesh",
+            "Apply a Laplacian smoothing to a given open triangular mesh.",
+            "CGeom", "Processing")
         {
         }
 
@@ -29,7 +29,9 @@ namespace CGeomGH.Quantities
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Angle", "Angle", "Angle threshold (in degrees).", GH_ParamAccess.item, 20);
+            pManager.AddPointParameter("Anchors", "Anchors", "Location of vertices to be fixed during smoothing.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Tolerance", "Tolerance", "Threshold distance for searching anchor vertices.", GH_ParamAccess.item, 1e-3);
+            pManager.AddIntegerParameter("Iterations", "Iterations", "Number of iterations.", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -37,7 +39,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddVectorParameter("Normals", "Normals", "Per corner normals", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Mesh", "M", "Resulting mesh.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -48,13 +50,17 @@ namespace CGeomGH.Quantities
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            double angle = 20;
+            int iterations = 1;
+            double tol = 1e-3;
+            List<Point3d> anchors = new List<Point3d>();
             DA.GetData(0, ref m);
-            DA.GetData(1, ref angle);
+            DA.GetDataList(1, anchors);
+            DA.GetData(2, ref tol);
+            DA.GetData(3, ref iterations);
 
-            Vector3d[] n = DiscreteQuantities.PerCornerNormals(m, angle);
+            DiscreteOperators.LaplacianSmoothingForOpenMesh(iterations, ref m, anchors, 1e-3);
 
-            DA.SetDataList(0, n);
+            DA.SetData(0, m);
         }
 
         /// <summary>
@@ -78,7 +84,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("7c90c5f7-af5f-4464-8051-280a9252a713"); }
+            get { return new Guid("ffd6bbda-4c77-4c4d-acb4-a035289388ca"); }
         }
     }
 }

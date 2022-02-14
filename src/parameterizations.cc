@@ -23,141 +23,132 @@ extern "C"
 
 namespace CGeom
 {
-    ///////////////////////////////////////////////
-    // Mixed Integer Quadrangulation
-    ///////////////////////////////////////////////
 
-    CGEOM_PARAM_API void iglSeamlessIntegerGridParameterization(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outVertexCount, size_t *outFaceCount, double **outVertexCoords, int **outFaceIndexes)
+    CGEOM_PARAM_API void cgeomParseMatrixXd(const Eigen::MatrixXd m, double **outData){
+        auto sF = m.size() * sizeof(double);
+        *outData = static_cast<double *>(malloc(sF));
+        std::memcpy(*outData, m.data(), sF);
+    }
+
+    CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXi m, int **outData){
+        auto sF = m.size() * sizeof(int);
+        *outData = static_cast<int *>(malloc(sF));
+        std::memcpy(*outData, m.data(), sF);
+    }
+
+    CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, int *inConstrainedFaces, double *inConstrainedVectorFaces, 
+                                    int degree, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, double **outSingularities)
     {
         // Build mesh
-        Eigen::MatrixXd V;
-        Eigen::MatrixXi F;
-        V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
-        F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
-
-        double gradient_size = 50;
-        double iter = 0;
-        double stiffness = 5.0;
-        bool direct_round = 0;
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
 
         // Compute face barycenters
         Eigen::MatrixXd B;
         igl::barycenter(V, F, B);
 
         // Constrain one face
-        Eigen::VectorXi b(1);
-        Eigen::MatrixXd bc(1, 3);
+        Eigen::VectorXi b = Eigen::Map<Eigen::VectorXi>(inConstrainedFaces, 1, numConstraints); 
+        Eigen::MatrixXd bc = Eigen::Map<Eigen::MatrixXd>(inConstrainedVectorFaces,b.size(), 3);
 
         Eigen::MatrixXd X1,X2;                                                      // Cross field
         // Create a smooth 4-RoSy field
         Eigen::VectorXd S;
-        igl::copyleft::comiso::nrosy(V, F, b, bc, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), 4, 0.5, X1, S);
+        igl::copyleft::comiso::nrosy(V, F, b, bc, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), degree, 0.5, X1, S);
 
         // Find the orthogonal vector
         Eigen::MatrixXd B1, B2, B3;
         igl::local_basis(V, F, B1, B2, B3);
         X2 = igl::rotate_vectors(X1, Eigen::VectorXd::Constant(1, igl::PI / 2), B1, B2);
 
+        // output vector field and barycenters
+        cgeomParseMatrixXd(B, outBarycentersCoords);
+        cgeomParseMatrixXd(X1, outX1Coords);
+        cgeomParseMatrixXd(X2, outX2Coords);
+        cgeomParseMatrixXd(S, outSingularities);
+    }
+
+    CGEOM_PARAM_API void cgeomSeamlessIntegerGridParameterization(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double *inCoordsX1, double *inCoordsX2,
+                                                                  double gradient_size, double stiffness, bool direct_round, size_t numIterations, size_t *outNumUV, size_t *outNumFUV, double **outUV, int **outFUV)
+    {
+        // Build mesh
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+        Eigen::MatrixXd X1 = Eigen::Map<Eigen::MatrixXd>(inCoordsX1, numFaces, 3);
+        Eigen::MatrixXd X2 = Eigen::Map<Eigen::MatrixXd>(inCoordsX2, numFaces, 3); 
+
         // Always work on the bisectors, it is more general
-        Eigen::MatrixXd BIS1, BIS2;                                                 // Bisector field
+        Eigen::MatrixXd BIS1, BIS2;                                                 
         igl::compute_frame_field_bisectors(V, F, X1, X2, BIS1, BIS2);
 
         // Comb the field, implicitly defining the seams      
-        Eigen::MatrixXd BIS1_combed, BIS2_combed;                                   // Combed bisector
+        Eigen::MatrixXd BIS1_combed, BIS2_combed;                                   
         igl::comb_cross_field(V, F, BIS1, BIS2, BIS1_combed, BIS2_combed);
 
         // Find the integer mismatches
-        Eigen::Matrix<int, Eigen::Dynamic, 3> MMatch;                               // Per-corner, integer mismatches
+        Eigen::Matrix<int, Eigen::Dynamic, 3> MMatch;                               
         igl::cross_field_mismatch(V, F, BIS1_combed, BIS2_combed, true, MMatch);
 
         // Find the singularities         
-        Eigen::Matrix<int, Eigen::Dynamic, 1> isSingularity, singularityIndex;      // Field singularities
+        Eigen::Matrix<int, Eigen::Dynamic, 1> isSingularity, singularityIndex;      
         igl::find_cross_field_singularities(V, F, MMatch, isSingularity, singularityIndex);
 
         // Cut the mesh, duplicating all vertices on the seams
-        Eigen::Matrix<int, Eigen::Dynamic, 3> Seams;                                // Per corner seams
+        Eigen::Matrix<int, Eigen::Dynamic, 3> Seams;                                
         igl::cut_mesh_from_singularities(V, F, MMatch, Seams);
 
         // Comb the frame-field accordingly
-        Eigen::MatrixXd X1_combed, X2_combed;                                       // Combed field
+        Eigen::MatrixXd X1_combed, X2_combed;                                       
         igl::comb_frame_field(V, F, X1, X2, BIS1_combed, BIS2_combed, X1_combed, X2_combed);
-
 
         // Global parametrization
         Eigen::MatrixXd UV;
         Eigen::MatrixXi FUV;
-        igl::copyleft::comiso::miq(V,
-                F,
-                X1_combed,
-                X2_combed,
-                MMatch,
-                isSingularity,
-                Seams,
-                UV,
-                FUV,
-                gradient_size,
-                stiffness,
-                direct_round,
-                iter,
-                5,
-                true);
+        igl::copyleft::comiso::miq(V, F, X1_combed, X2_combed, MMatch, isSingularity, Seams, UV, FUV,
+                                   gradient_size, stiffness, direct_round, numIterations, 5, true);
 
-        ///////////////////////////////////////////////////
-        ///////////////////////////////////////////////////
-        ///////////////////////////////////////////////////
-        ///////////////////////////////////////////////////
-        // qex_TriMesh triMesh;
-        // qex_QuadMesh quadMesh;
-        // unsigned int vertex_i, face_i;
-        // qex_Point3* vertex;
+        *outNumUV = UV.size();
+        *outNumFUV = FUV.size();
+        cgeomParseMatrixXd(UV, outUV);
+        cgeomParseMatrixXi(FUV, outFUV);    
+    }
 
+    CGEOM_PARAM_API void cgeomQuadMeshExtraction(const int inVertexCount, const int inTriasCount, double *inCoords, int *inTrias, double *inUV, int *inFUV, 
+                                              size_t *outVertexCount, size_t *outQuadsCount, double **outCoords, int **outQuads){
 
-        // triMesh.vertex_count = 4;
-        // triMesh.tri_count = 2;
+        // Build mesh
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, inVertexCount, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inTrias, inTriasCount, 3);
+        Eigen::MatrixXd UV = Eigen::Map<Eigen::MatrixXd>(inUV, inVertexCount, 3);
+        Eigen::MatrixXi FUV = Eigen::Map<Eigen::MatrixXi>(inFUV, inTriasCount, 3);
 
-        // triMesh.vertices = (qex_Point3*)malloc(sizeof(qex_Point3) * 4);
-        // triMesh.tris = (qex_Tri*)malloc(sizeof(qex_Tri) * 2);
-        // triMesh.uvTris = (qex_UVTri*)malloc(sizeof(qex_UVTri) * 2);
-
-        // triMesh.vertices[0] = (qex_Point3) { .x = {-1, 0, -1} };
-        // triMesh.vertices[1] = (qex_Point3) { .x = {0, 0, 1} };
-        // triMesh.vertices[2] = (qex_Point3) { .x = {1, 0, 1} };
-        // triMesh.vertices[3] = (qex_Point3) { .x = {1, 0, 0} };
-
-        // triMesh.tris[0] = (qex_Tri) { .indices = {0, 1, 2} };
-        // triMesh.tris[1] = (qex_Tri) { .indices = {0, 2, 3} };
-        // triMesh.uvTris[0] = (qex_UVTri) { .uvs = { (qex_Point2) { .x = {-.1, -.1} }, (qex_Point2) { .x = {1.1, -.1} }, (qex_Point2) { .x = {1, 1} } } };
-        // triMesh.uvTris[1] = (qex_UVTri) { .uvs = { (qex_Point2) { .x = {-.1, -.1} }, (qex_Point2) { .x = {1, 1} }, (qex_Point2) { .x = {-.1, 1.1} } } };
-
+        // Initialize triangular mesh
         qex_TriMesh triMesh;
         qex_QuadMesh quadMesh;
         qex_Point3* vertex;
 
-        triMesh.vertex_count = numVertices;
-        triMesh.tri_count = numFaces;
+        triMesh.vertex_count = inVertexCount;
+        triMesh.tri_count = inTriasCount;
 
-        triMesh.vertices = (qex_Point3*)malloc(sizeof(qex_Point3) * numVertices);
-        triMesh.tris = (qex_Tri*)malloc(sizeof(qex_Tri) * numFaces);
-        triMesh.uvTris = (qex_UVTri*)malloc(sizeof(qex_UVTri) * numFaces);
+        triMesh.vertices = (qex_Point3*)malloc(sizeof(qex_Point3) * inVertexCount);
+        triMesh.tris = (qex_Tri*)malloc(sizeof(qex_Tri) * inTriasCount);
+        triMesh.uvTris = (qex_UVTri*)malloc(sizeof(qex_UVTri) * inTriasCount);
 
-        for(int i=0; i<numVertices; i++){
-            triMesh.vertices[i] = (qex_Point3) { .x = { V(i,0), V(i,1), V(i,2) } }; //inCoords[i*3], inCoords[i*3+1], inCoords[i*3+2]} };    
+        for(int i=0; i<inVertexCount; i++){
+            triMesh.vertices[i] = (qex_Point3) { .x = { V(i,0), V(i,1), V(i,2) } };    
         }
 
-        for(int i=0; i<numFaces; i++){
+        for(int i=0; i<inTriasCount; i++){
             triMesh.tris[i] = (qex_Tri) { .indices = { (qex_Index) F(i,0), (qex_Index) F(i,1), (qex_Index) F(i,2) } };
             triMesh.uvTris[i] = (qex_UVTri) { .uvs = { (qex_Point2) { .x = { UV(FUV(i,0),0), UV(FUV(i,0),1) } }, (qex_Point2) { .x = { UV(FUV(i,1),0), UV(FUV(i,1),1) } }, (qex_Point2) { .x = { UV(FUV(i,2),0), UV(FUV(i,2),1) } } } };
         }
-
-        //triMesh.uvTris[0] = (qex_UVTri) { .uvs = { (qex_Point2) { .x = {-.1, -.1} }, (qex_Point2) { .x = {1.1, -.1} }, (qex_Point2) { .x = {1, 1} } } };
-        //triMesh.uvTris[1] = (qex_UVTri) { .uvs = { (qex_Point2) { .x = {-.1, -.1} }, (qex_Point2) { .x = {1, 1} }, (qex_Point2) { .x = {-.1, 1.1} } } };
 
         qex_extractQuadMesh(&triMesh, NULL, &quadMesh);
 
         // Parse quad mesh vertex data
         *outVertexCount = quadMesh.vertex_count * 3;
         auto sV = (quadMesh.vertex_count * 3) * sizeof(double);
-        *outVertexCoords = static_cast<double *>(malloc(sV));
+        *outCoords = static_cast<double *>(malloc(sV));
 
         std::vector<double> coord;
         for(int i=0; i<quadMesh.vertex_count; i++){
@@ -166,12 +157,12 @@ namespace CGeom
             coord.push_back(vertex[1]);
             coord.push_back(vertex[2]);
         }
-        std::memcpy(*outVertexCoords, coord.data(), sV);
+        std::memcpy(*outCoords, coord.data(), sV);
 
         // Parse quad mesh face data
-        *outFaceCount = quadMesh.quad_count * 4;
+        *outQuadsCount = quadMesh.quad_count * 4;
         auto sF = (quadMesh.quad_count * 4) * sizeof(int);
-        *outFaceIndexes = static_cast<int *>(malloc(sF));
+        *outQuads = static_cast<int *>(malloc(sF));
 
         std::vector<int> faces;
         for(int i=0; i<quadMesh.quad_count; i++){
@@ -181,7 +172,7 @@ namespace CGeom
             faces.push_back(quad[2]);
             faces.push_back(quad[3]);
         }
-        std::memcpy(*outFaceIndexes, faces.data(), sF);
+        std::memcpy(*outQuads, faces.data(), sF);
 
 
         free(triMesh.vertices);
@@ -191,4 +182,5 @@ namespace CGeom
         free(quadMesh.vertices);
         free(quadMesh.quads);
     }
+    
 }

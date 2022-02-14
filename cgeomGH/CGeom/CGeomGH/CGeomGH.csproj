@@ -27,14 +27,11 @@
   <ItemGroup>
     <None Remove="DiscreteQuantities\" />
     <None Remove="Parameterization\" />
+    <None Remove="Processing\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Quantities\" />
     <Folder Include="Parameterization\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="libcgeom.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Processing\" />
   </ItemGroup>
 </Project>

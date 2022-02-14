@@ -7,7 +7,7 @@ using Rhino.Geometry;
 
 namespace CGeomGH.Quantities
 {
-    public class PerCornerNormalsGH : GH_Component
+    public class PerVertexPrincipalCurvaturesGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,9 +16,9 @@ namespace CGeomGH.Quantities
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public PerCornerNormalsGH()
-          : base("PerCornerNormals", "CNormals",
-            "Computes the area-weighted average of normals at incident faces whose normals deviate less than the provided angle.",
+        public PerVertexPrincipalCurvaturesGH()
+          : base("PerVertexPrincipalCurvatures", "VPrincipalCurvatures",
+            "Computes the principal curvatures at vertices.",
             "CGeom", "Quantities")
         {
         }
@@ -29,7 +29,6 @@ namespace CGeomGH.Quantities
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Angle", "Angle", "Angle threshold (in degrees).", GH_ParamAccess.item, 20);
         }
 
         /// <summary>
@@ -37,7 +36,10 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddVectorParameter("Normals", "Normals", "Per corner normals", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Val1", "V1", "First principal curvature value.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Val2", "V2", "Second principal curvature value.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Dir1", "D1", "First principal curvature direction.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Dir2", "D2", "Second principal curvature direction.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -48,13 +50,16 @@ namespace CGeomGH.Quantities
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            double angle = 20;
             DA.GetData(0, ref m);
-            DA.GetData(1, ref angle);
 
-            Vector3d[] n = DiscreteQuantities.PerCornerNormals(m, angle);
+            double[] val1, val2;
+            Vector3d[] dir1, dir2;
+            DiscreteQuantities.PerVertexPrincipalCurvatures(m, out val1, out val2, out dir1, out dir2);
 
-            DA.SetDataList(0, n);
+            DA.SetDataList(0, val1);
+            DA.SetDataList(1, val2);
+            DA.SetDataList(2, dir1);
+            DA.SetDataList(3, dir2);
         }
 
         /// <summary>
@@ -78,7 +83,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("7c90c5f7-af5f-4464-8051-280a9252a713"); }
+            get { return new Guid("7aae8316-d918-4691-a42f-cec383b9b851"); }
         }
     }
 }

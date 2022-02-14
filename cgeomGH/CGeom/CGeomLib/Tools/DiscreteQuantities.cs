@@ -9,15 +9,15 @@ namespace CGeom.Tools
 {
     public static class DiscreteQuantities
     {
-        public static void PrincipalCurvatures(Mesh mesh, out double[] outVal1, out double[] outVal2, out Vector3d[] outVec1, out Vector3d[] outVec2)
+        public static void PerVertexPrincipalCurvatures(Mesh mesh, out double[] outVal1, out double[] outVal2, out Vector3d[] outVec1, out Vector3d[] outVec2)
         {
-            int numVertices,numFaces;
+            int numVertices, numFaces;
             double[] coords;
             int[] faces;
             Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             IntPtr dir1, dir2, val1, val2;
-            Kernel.DiscreteQuantities.IglPrincipalCurvatures(numVertices, numFaces, coords, faces, out dir1, out dir2, out val1, out val2);
+            Kernel.DiscreteQuantities.CgeomPrincipalCurvatures(numVertices, numFaces, coords, faces, out dir1, out dir2, out val1, out val2);
 
             // Parse principal curvatures
             outVal1 = new double[numVertices];
@@ -44,6 +44,48 @@ namespace CGeom.Tools
             }
         }
 
+        public static void PerFacePrincipalCurvatures(Mesh mesh, out double[] outVal1, out double[] outVal2, out Vector3d[] outVec1, out Vector3d[] outVec2)
+        {
+            double[] vval1, vval2;
+            Vector3d[] vdir1, vdir2;
+            DiscreteQuantities.PerVertexPrincipalCurvatures(mesh, out vval1, out vval2, out vdir1, out vdir2);
+
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            outVal1 = new double[numFaces];
+            outVal2 = new double[numFaces];
+            outVec1 = new Vector3d[numFaces];
+            outVec2 = new Vector3d[numFaces];
+
+            for(int i=0; i<numFaces; i++)
+            {
+                outVec1[i] = new Vector3d();
+                outVec2[i] = new Vector3d();
+                outVal1[i] = 0;
+                outVal2[i] = 0;
+
+                for(int j=0; j<3; j++)
+                {
+                    int idx = faces[i*3+j];
+                    outVec1[i] += vdir1[idx];
+                    outVec2[i] += vdir2[idx];
+                    outVal1[i] += vval1[idx];
+                    outVal2[i] += vval2[idx];
+                }
+
+                outVal1[i] /= 3;
+                outVal2[i] /= 3;
+                outVec1[i] /= 3;
+                outVec2[i] /= 3;
+
+                outVec1[i].Unitize();
+                outVec2[i].Unitize();
+            }
+        }
+
         public static Vector3d[] PerVertexNormals(Mesh mesh)
         {
             int numVertices, numFaces;
@@ -52,7 +94,7 @@ namespace CGeom.Tools
             Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             IntPtr n;
-            Kernel.DiscreteQuantities.IglNormalsPerVertex(numVertices, numFaces, coords, faces, out n);
+            Kernel.DiscreteQuantities.CgeomNormalsPerVertex(numVertices, numFaces, coords, faces, out n);
 
             double[] outNorm = new double[numVertices * 3];
             Marshal.Copy(n, outNorm, 0, numVertices * 3);
@@ -75,7 +117,7 @@ namespace CGeom.Tools
             Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             IntPtr n;
-            Kernel.DiscreteQuantities.IglNormalsPerFace(numVertices, numFaces, coords, faces, out n);
+            Kernel.DiscreteQuantities.CgeomNormalsPerFace(numVertices, numFaces, coords, faces, out n);
 
             double[] outNorm = new double[numFaces * 3];
             Marshal.Copy(n, outNorm, 0, numFaces * 3);
@@ -105,7 +147,7 @@ namespace CGeom.Tools
             Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             IntPtr n;
-            Kernel.DiscreteQuantities.IglNormalsPerCorner(numVertices, numFaces, coords, faces, angle, out n);
+            Kernel.DiscreteQuantities.CgeomNormalsPerCorner(numVertices, numFaces, coords, faces, angle, out n);
 
             double[] outNorm = new double[numVertices * 3];
             Marshal.Copy(n, outNorm, 0, numVertices * 3);
@@ -136,7 +178,7 @@ namespace CGeom.Tools
             Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             IntPtr k;
-            Kernel.DiscreteQuantities.IglGaussianCurvature(numVertices, numFaces, coords, faces, out k);
+            Kernel.DiscreteQuantities.CgeomGaussianCurvature(numVertices, numFaces, coords, faces, out k);
 
             double[] K = new double[numVertices];
             Marshal.Copy(k, K, 0, numVertices);
@@ -158,7 +200,7 @@ namespace CGeom.Tools
             Utils.ParseRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
             IntPtr h;
-            Kernel.DiscreteQuantities.IglMeanCurvature(numVertices, numFaces, coords, faces, out h);
+            Kernel.DiscreteQuantities.CgeomMeanCurvature(numVertices, numFaces, coords, faces, out h);
 
             double[] H = new double[numVertices];
             Marshal.Copy(h, H, 0, numVertices);

@@ -5,9 +5,9 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Parameterization
+namespace CGeomGH.Processing
 {
-    public class IntGridParam : GH_Component
+    public class LaplacianForCloseMeshGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.Parameterization
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public IntGridParam()
-          : base("IntGridParam", "IntGridParam",
-            "IntGridParam description",
-            "CGeom", "Subcategory")
+        public LaplacianForCloseMeshGH()
+          : base("LaplacianCloseMesh", "LaplacianCloseMesh",
+            "Apply a Laplacian smoothing to a given close triangular mesh.",
+            "CGeom", "Processing")
         {
         }
 
@@ -28,7 +28,10 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Smoothing", "Smoothing", "Smoothing factor per iterations.", GH_ParamAccess.list, 1e-3);
+            pManager.AddNumberParameter("Tolerance", "Tolerance", "Threshold distance for searching anchor vertices.", GH_ParamAccess.item, 1e-3);
+            pManager.AddIntegerParameter("Iterations", "Iterations", "Number of iterations.", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -36,7 +39,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("QuadMesh", "QM", "Quadrangulated mesh", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "M", "Resulting mesh.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -47,11 +50,16 @@ namespace CGeomGH.Parameterization
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
+            int iterations = 1;
+            double smoothing = 1e-3, tol = 1e-3;
             DA.GetData(0, ref m);
+            DA.GetData(1, ref smoothing);
+            DA.GetData(2, ref tol);
+            DA.GetData(3, ref iterations);
 
-            Mesh qM = Parameterizations.MIQ(m);
+            DiscreteOperators.LaplacianSmoothingForCloseMesh(iterations, ref m, smoothing, tol);
 
-            DA.SetData(0, qM);
+            DA.SetData(0, m);
         }
 
         /// <summary>
@@ -75,7 +83,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("624de344-3aa4-40aa-82d1-7e737c8e46d0"); }
+            get { return new Guid("d51f0109-7b13-49c1-857a-d94a01f4aa35"); }
         }
     }
 }

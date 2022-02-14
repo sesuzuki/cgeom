@@ -17,9 +17,9 @@ namespace CGeomGH.Quantities
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PerFaceNormalsGH()
-          : base("PerFaceNormalsGH", "Nickname",
-            "PerFaceNormalsGH description",
-            "CGeom", "Subcategory")
+          : base("PerFaceNormals", "FNormals",
+            "Computes the average of normals at faces.",
+            "CGeom", "Quantities")
         {
         }
 
@@ -28,7 +28,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
         }
 
         /// <summary>

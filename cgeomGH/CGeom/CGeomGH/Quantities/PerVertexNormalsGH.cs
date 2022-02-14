@@ -17,9 +17,9 @@ namespace CGeomGH.Quantities
         /// new tabs/panels will automatically be created.
         /// </summary>
         public PerVertexNormalsGH()
-          : base("PerVertexNormalsGH", "Nickname",
-            "PerVertexNormalsGH description",
-            "CGeom", "Subcategory")
+          : base("PerVertexNormals", "VNormals",
+            "Computes the normals at vertices.",
+            "CGeom", "Quantities")
         {
         }
 
@@ -28,7 +28,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
         }
 
         /// <summary>

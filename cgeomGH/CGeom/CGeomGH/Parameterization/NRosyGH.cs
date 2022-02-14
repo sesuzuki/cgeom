@@ -5,9 +5,9 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Quantities
+namespace CGeomGH.Parameterization
 {
-    public class PerCornerNormalsGH : GH_Component
+    public class NRosyGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.Quantities
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public PerCornerNormalsGH()
-          : base("PerCornerNormals", "CNormals",
-            "Computes the area-weighted average of normals at incident faces whose normals deviate less than the provided angle.",
-            "CGeom", "Quantities")
+        public NRosyGH()
+          : base("NRosy", "NRosy",
+            "Create a smooth N-RoSy field.",
+            "CGeom", "Parameterization")
         {
         }
 
@@ -29,7 +29,8 @@ namespace CGeomGH.Quantities
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Angle", "Angle", "Angle threshold (in degrees).", GH_ParamAccess.item, 20);
+            pManager.AddIntegerParameter("ConstrainedFaces","CFace","Indexes of faces to be constrained.",GH_ParamAccess.list);
+            pManager.AddVectorParameter("ConstrainedVectors", "CVec", "Representative vectors for constrained faces (one per face).", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -37,7 +38,10 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddVectorParameter("Normals", "Normals", "Per corner normals", GH_ParamAccess.list);
+            pManager.AddVectorParameter("X1", "X1", "First orthogonal vectors of the frame field.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("X2", "X2", "Second orthogonal vectors of the frame field.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Barycenters", "Barycenters", "Face barycenters.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Singularities", "Singularities", "Singularity index for each vertex.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -48,13 +52,22 @@ namespace CGeomGH.Quantities
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            double angle = 20;
+            List<int> faceIdx = new List<int>();
+            List<Vector3d> vec = new List<Vector3d>();
             DA.GetData(0, ref m);
-            DA.GetData(1, ref angle);
+            DA.GetDataList(1, faceIdx);
+            DA.GetDataList(2, vec);
 
-            Vector3d[] n = DiscreteQuantities.PerCornerNormals(m, angle);
+            if (faceIdx.Count != vec.Count) new GH_RuntimeMessage("The number of constrained faces doesn't match with the number of representative vectors per constrained face.", GH_RuntimeMessageLevel.Error);
 
-            DA.SetDataList(0, n);
+            Vector3d[] x1, x2, barycenters;
+            double[] singularities;
+            Parameterizations.BuildNRosy(m, faceIdx, vec, out x1, out x2, out barycenters, out singularities);
+
+            DA.SetDataList(0, x1);
+            DA.SetDataList(1, x2);
+            DA.SetDataList(2, barycenters);
+            DA.SetDataList(3, singularities);
         }
 
         /// <summary>
@@ -78,7 +91,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("7c90c5f7-af5f-4464-8051-280a9252a713"); }
+            get { return new Guid("8006e788-333c-41ad-8744-9655c794ff34"); }
         }
     }
 }

@@ -2,17 +2,18 @@
 using System.Linq;
 using System.Collections.Generic;
 using Rhino.Geometry;
+using System.Runtime.InteropServices;
 
 namespace CGeom.Tools
 {
     public static class Utils
     {
-        public enum StorargeOrder {RowMajor=0, ColumnMajor=1};
+        public enum StorageOrder {RowMajor=0, ColumnMajor=1};
 
         public static void ParseRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
         {
-            coords = Utils.FlattenPoints(mesh.Vertices.ToPoint3dArray(), Utils.StorargeOrder.ColumnMajor);
-            faces = Utils.FlattenFaceDate(mesh, Utils.StorargeOrder.ColumnMajor);
+            coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
+            faces = Utils.FlattenFaceDate(mesh, Utils.StorageOrder.ColumnMajor);
 
             numVertices = coords.Count() / 3;
             numFaces = faces.Count() / 3;
@@ -24,32 +25,18 @@ namespace CGeom.Tools
         /// <param name="pts"> Collection of rhino points. </param>
         /// <param name="order"> Storage order. </param>
         /// <returns></returns>
-        public static double[] FlattenPoints(IEnumerable<Point3d> pts, StorargeOrder order)
+        public static double[] FlattenPoint3dData(IEnumerable<Point3d> pts, StorageOrder order = StorageOrder.ColumnMajor)
         {
-            int count = pts.Count();
-            double[] outData = new double[count * 3];
+            double[,] data = new double[pts.Count(), 3];
+            for (int i = 0; i < pts.Count(); i++)
+            {
+                var v = pts.ElementAt(i);
+                data[i, 0] = v.X;
+                data[i, 1] = v.Y;
+                data[i, 2] = v.Z;
+            }
 
-            if (order == StorargeOrder.ColumnMajor)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    Point3d p = pts.ElementAt(i);
-                    outData[i] = p.X;
-                    outData[count + i] = p.Y;
-                    outData[count * 2 + i] = p.Z;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    Point3d p = pts.ElementAt(i);
-                    outData[i * 3] = p.X;
-                    outData[i * 3 + 1] = p.Y;
-                    outData[i * 3 + 2] = p.Z;
-                }
-            }
-            return outData;
+            return FlattenDoubleData(data, order);
         }
 
         /// <summary>
@@ -58,14 +45,14 @@ namespace CGeom.Tools
         /// <param name="data"> Multidimensional array. </param>
         /// <param name="order"> Storage order. </param>
         /// <returns></returns>
-        public static double[] FlattenDoubleData(double[,] data, StorargeOrder order)
+        public static double[] FlattenDoubleData(double[,] data, StorageOrder order)
         {
             int row = data.GetLength(0);
             int column = data.GetLength(1);
 
             double[] outData = new double[row * column];
 
-            if (order == StorargeOrder.ColumnMajor)
+            if (order == StorageOrder.ColumnMajor)
             {
                 for (int i = 0; i < column; i++)
                 {
@@ -94,14 +81,14 @@ namespace CGeom.Tools
         /// <param name="data"> Multidimensional array. </param>
         /// <param name="order"> Storage order. </param>
         /// <returns></returns>
-        public static int[] FlattenIntData(int[,] data, StorargeOrder order)
+        public static int[] FlattenIntData(int[,] data, StorageOrder order = StorageOrder.ColumnMajor)
         {
             int row = data.GetLength(0);
             int column = data.GetLength(1);
 
             int[] outData = new int[row * column];
 
-            if (order == StorargeOrder.ColumnMajor)
+            if (order == StorageOrder.ColumnMajor)
             {
                 for (int i = 0; i < column; i++)
                 {
@@ -131,7 +118,7 @@ namespace CGeom.Tools
         /// <param name="m"></param>
         /// <param name="order"></param>
         /// <returns></returns>
-        public static int[] FlattenFaceDate(Mesh m, StorargeOrder order)
+        public static int[] FlattenFaceDate(Mesh m, StorageOrder order)
         {
             m.Faces.ConvertQuadsToTriangles();
             int row = m.Faces.TriangleCount;
@@ -146,6 +133,47 @@ namespace CGeom.Tools
             }
 
             return FlattenIntData(faces, order);
+        }
+
+        /// <summary>
+        /// Flatten a list of 3d vectors into a 1D array with a specific storage order.
+        /// </summary>
+        /// <param name="m"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public static double[] FlattenVector3dData(IEnumerable<Vector3d> vec, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            double[,] data = new double[vec.Count(), 3];
+            for (int i = 0; i < vec.Count(); i++)
+            {
+                var v = vec.ElementAt(i);
+                data[i, 0] = v.X;
+                data[i, 1] = v.Y;
+                data[i, 2] = v.Z;
+            }
+
+            return FlattenDoubleData(data, order);
+        }
+
+        /// <summary>
+        /// Flatten a list of triangular faces into a 1D array with a specific storage order.
+        /// </summary>
+        /// <param name="trias"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public static int[] FlattenMeshFaceData(IEnumerable<MeshFace> trias, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            int[,] data = new int[trias.Count(), 3];
+            for (int i = 0; i < trias.Count(); i++)
+            {
+                var f = trias.ElementAt(i);
+                if (f.IsQuad) throw new ArgumentException("All faces need to be triangles.");
+                data[i, 0] = f.A;
+                data[i, 1] = f.B;
+                data[i, 2] = f.C;
+            }
+
+            return FlattenIntData(data, order);
         }
 
         /// <summary>
@@ -171,6 +199,172 @@ namespace CGeom.Tools
             m.UnifyNormals();
 
             return m;
+        }
+
+        /// <summary>
+        /// Flatten a multidimensional array of doubles into a 1D array with a specific storage order.
+        /// </summary>
+        /// <param name="data"> Multidimensional array. </param>
+        /// <param name="order"> Storage order. </param>
+        /// <returns></returns>
+        public static double[,] ParseDoubleArrToMatrixXd(double[] data, int column = 3, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            int row = data.Length / column;
+
+            double[,] outData = new double[row,column];
+
+            if (order == StorageOrder.ColumnMajor)
+            {
+                for (int i = 0; i < column; i++)
+                {
+                    for (int j = 0; j < row; j++)
+                    {
+                        outData[j, i] = data[i * row + j];
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < row; i++)
+                {
+                    for (int j = 0; j < column; j++)
+                    {
+                        outData[i, j] = data[i * column + j];
+                    }
+                }
+            }
+
+            return outData;
+        }
+
+        /// <summary>
+        /// Flatten a multidimensional array of integers into a 1D array with a specific storage order.
+        /// </summary>
+        /// <param name="data"> Multidimensional array. </param>
+        /// <param name="order"> Storage order. </param>
+        /// <returns></returns>
+        public static int[,] ParseDoubleArrToMatrixXi(int[] data, int column = 3, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            int row = data.Length / column;
+
+            int[,] outData = new int[row, column];
+
+            if (order == StorageOrder.ColumnMajor)
+            {
+                for (int i = 0; i < column; i++)
+                {
+                    for (int j = 0; j < row; j++)
+                    {
+                        outData[j, i] = data[i * row + j];
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < row; i++)
+                {
+                    for (int j = 0; j < column; j++)
+                    {
+                        outData[i, j] = data[i * column + j];
+                    }
+                }
+            }
+
+            return outData;
+        }
+
+        public static double[] ParsePointerToDoubleArr(IntPtr ptr, int count)
+        {
+            // Marshal flat list of vector components
+            double[] outData = new double[count];
+            Marshal.Copy(ptr, outData, 0, count);
+
+            // Free pointer
+            Marshal.FreeCoTaskMem(ptr);
+
+            return outData;
+        }
+
+        public static int[] ParsePointerToIntArr(IntPtr ptr, int count)
+        {
+            // Marshal flat list of vector components
+            int[] outData = new int[count];
+            Marshal.Copy(ptr, outData, 0, count);
+
+            // Free pointer
+            Marshal.FreeCoTaskMem(ptr);
+
+            return outData;
+        }
+
+        public static Vector3d[] ParsePointerToVectorArr(IntPtr ptr, int count, bool is3D= true, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            // Marshal flat list of vector components
+            int cols = 3;
+            if (!is3D) cols = 2;
+            double[,] data = ParseDoubleArrToMatrixXd(ParsePointerToDoubleArr(ptr, count), cols, order);
+
+            // Matrix data to 3D vector
+            Vector3d[] vec = new Vector3d[data.GetLength(0)];
+
+            for (int i = 0; i < data.GetLength(0); i++)
+            {
+                if(is3D) vec[i] = new Vector3d(data[i, 0], data[i, 1], data[i, 2]);
+                else vec[i] = new Vector3d(data[i, 0], data[i, 1], 0);
+            }
+
+            return vec;
+        }
+
+        public static bool ParsePointerToMeshVertices(IntPtr ptr, int count, ref Mesh mesh, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            if (mesh.Vertices.Count == count/3)
+            {
+                // Marshal flat list of vector components
+                double[,] data = ParseDoubleArrToMatrixXd(ParsePointerToDoubleArr(ptr, count), 3, order);
+
+                // Matrix data to mesh vertices
+
+                for (int i = 0; i < data.GetLength(0); i++)
+                {
+                    mesh.Vertices.SetVertex(i, new Point3d(data[i, 0], data[i, 1], data[i, 2]));
+                }
+
+                return true;
+            }
+            else return false;
+        }
+
+        public static Point3d[] ParsePointerToPointArr(IntPtr ptr, int count, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            // Marshal flat list of vector components
+            double[,] data = ParseDoubleArrToMatrixXd(ParsePointerToDoubleArr(ptr, count), 3, order);
+
+            // Matrix data to 3D point
+            Point3d[] pts = new Point3d[data.GetLength(0)];
+
+            for (int i = 0; i < data.GetLength(0); i++)
+            {
+                pts[i] = new Point3d(data[i, 0], data[i, 1], 0);
+            }
+
+            return pts;
+        }
+
+        public static MeshFace[] ParsePointerToMeshFaceArr(IntPtr ptr, int count, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            // Marshal flat list of vector components
+            int[,] data = ParseDoubleArrToMatrixXi(ParsePointerToIntArr(ptr, count), 3, order);
+
+            // Matrix data to meshface
+            MeshFace[] faces = new MeshFace[data.GetLength(0)];
+
+            for (int i = 0; i < data.GetLength(0); i++)
+            {
+                faces[i] = new MeshFace(data[i, 0], data[i, 1], data[i, 2]);
+            }
+
+            return faces;
         }
     }
 }
