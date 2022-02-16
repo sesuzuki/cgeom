@@ -20,7 +20,7 @@ namespace CGeom.Wrappers
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomNRosy")]
-            internal static extern void CgeomNRosy(int numVertices, int numFaces, int numConstraints, double[] inCoords, int[] inFaces, int[] inConstrainedFaces, double[] inConstrainedVectorFaces, int degree,
+            internal static extern void CgeomNRosy(int numVertices, int numFaces, int numConstraints, double[] inCoords, int[] inFaces, int[] inConstrainedFaces, double[] inConstrainedVectorFaces, int degree, double smoothness,
                                                    out int outX1CoordsCount, out int outX2CoordsCount, out int outBarycentersCoordsCount, out int outSingularitiesCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outBarycentersCoords, out IntPtr outSingularities);
 
             [SuppressUnmanagedCodeSecurity]

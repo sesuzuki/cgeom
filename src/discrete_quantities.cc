@@ -15,6 +15,7 @@
 #include <igl/setdiff.h>
 #include <igl/slice_into.h>
 #include <igl/min_quad_with_fixed.h>
+#include <igl/local_basis.h>
 
 extern "C"
 {
@@ -28,121 +29,125 @@ namespace CGeom
     // Discrete Geometric Quantities And Operators
     ///////////////////////////////////////////////
 
-    CGEOM_QUANT_API void cgeomPerVertexAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1, double **outX2){ 
-        // Build mesh
-        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
-        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+    CGEOM_QUANT_API int cgeomPerVertexAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1, double **outX2, const char **errorMessage){ 
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
 
-        // Compute curvature directions via quadric fitting
-        Eigen::MatrixXd dir1,dir2;
-        Eigen::VectorXd val1,val2;
-        igl::principal_curvature(V,F,dir1,dir2,val1,val2);
+            // Compute curvature directions via quadric fitting
+            Eigen::MatrixXd x1,x2;
+            Eigen::VectorXd k1,k2;
+            igl::principal_curvature(V,F,x1,x2,k1,k2);
 
-        // Compute asymptotic directions
-        Eigen::MatrixXd adir1(numVertices, 3);
-        Eigen::MatrixXd adir2(numVertices, 3);
-        for(int i=0; i<numVertices; i++){
-            const auto k1 = val1(i);
-            const auto k2 = val2(i);
+            // Compute asymptotic directions
+            Eigen::MatrixXd aX1(numVertices,3), aX2(numVertices,3);
+            for(int i=0; i<numVertices; i++){
+                const auto vk1 = k1(i);
+                const auto vk2 = k2(i);
 
-            // Check for anticlastic surface-regions
-            if (k1 * k2 > 0){
-                adir1.row(i) = Eigen::Vector3d(0,0,0);
-                adir2.row(i) = Eigen::Vector3d(0,0,0);
-            }else{
-                Eigen::VectorXd theta(1);
-                theta(0) = atan2(-k1,k2);
+                if(vk1 * vk2 > 0) throw std::runtime_error("Synclastic curvature found at vertex " + std::to_string(i));
+                if(vk1 * vk2 == 0 && vk1==vk2) throw std::runtime_error("Flat area found at vertex " + std::to_string(i) + "; Infinite number of solutions.");
 
-                Eigen::MatrixXd a1(1,3);
-                a1.row(0) = dir1.row(i);
-                Eigen::MatrixXd a2(1,3);
-                a2.row(0) = dir2.row(i);
-                adir1.row(i) = igl::rotate_vectors(a1, theta, dir1.row(i), dir2.row(i));
-                adir2.row(i) = igl::rotate_vectors(a2, theta, dir1.row(i), dir2.row(i));
+                const double cos = sqrt(1 - (vk1 / (vk1 - vk2)));
+                const double sin = sqrt((vk1/ (vk1 - vk2)));
+                aX1.row(i) = cos * x1.row(i) + sin * x2.row(i);
+                aX2.row(i) = cos * x1.row(i) - sin * x2.row(i);
             }
+
+            // Parse data
+            cgeomParseMatrixXd(aX1, outX1, outX1Count);
+            cgeomParseMatrixXd(aX2, outX2, outX2Count);
+
+            // Release Eigen Matrix Memory
+            F.setZero();
+            V.setZero();
+            x1.setZero();
+            x2.setZero();
+            aX1.setZero();
+            aX2.setZero();
+            k1.setZero();
+            k2.setZero();
+
+            *errorMessage = "Success";
+            return 0;
         }
-
-        // Parse data
-        cgeomParseMatrixXd(adir1, outX1, outX1Count);
-        cgeomParseMatrixXd(adir2, outX2, outX2Count);
-
-        // Release Eigen Matrix Memory
-        F.setZero();
-        V.setZero();
-        adir1.setZero();
-        adir2.setZero();
-        dir1.setZero();
-        dir2.setZero();
-        val1.setZero();
-        val2.setZero();
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
     }
 
-    CGEOM_QUANT_API void cgeomPerFaceAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1, double **outX2){ 
-        // Build mesh
-        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
-        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+    CGEOM_QUANT_API int cgeomPerFaceAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, size_t *outBarycentersCount, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, const char **errorMessage){ 
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
 
-        // Compute curvature directions via quadric fitting
-        Eigen::MatrixXd dir1,dir2;
-        Eigen::VectorXd val1,val2;
-        igl::principal_curvature(V,F,dir1,dir2,val1,val2);
+            // Compute curvature directions via quadric fitting
+            Eigen::MatrixXd x1,x2;
+            Eigen::VectorXd k1,k2;
+            igl::principal_curvature(V,F,x1,x2,k1,k2);
 
-        // Compute per vertex asymptotic directions
-        Eigen::MatrixXd adir1(numVertices, 3);
-        Eigen::MatrixXd adir2(numVertices, 3);
-        for(int i=0; i<numVertices; i++){
-            const auto k1 = val1(i);
-            const auto k2 = val2(i);
+            // Compute per vertex asymptotic directions
+            Eigen::MatrixXd aX1(numVertices,3);
+            for(int i=0; i<numVertices; i++){
+                const auto vk1 = k1(i);
+                const auto vk2 = k2(i);
 
-            // Check for anticlastic surface-regions
-            if (k1 * k2 > 0){
-                adir1.row(i) = Eigen::Vector3d(0,0,0);
-                adir2.row(i) = Eigen::Vector3d(0,0,0);
-            }else{
-                Eigen::VectorXd theta(1);
-                theta(0) = atan2(-k1,k2);
-
-                Eigen::MatrixXd a1(1,3);
-                a1.row(0) = dir1.row(i);
-                Eigen::MatrixXd a2(1,3);
-                a2.row(0) = dir2.row(i);
-                adir1.row(i) = igl::rotate_vectors(a1, theta, dir1.row(i), dir2.row(i));
-                adir2.row(i) = igl::rotate_vectors(a2, theta, dir1.row(i), dir2.row(i));
+                if(vk1 * vk2 > 0) throw std::runtime_error("Synclastic curvature found at vertex " + std::to_string(i));
+                if(vk1 * vk2 == 0 && vk1==vk2) throw std::runtime_error("Flat area found at vertex " + std::to_string(i) + "; Infinite number of solutions.");
+                
+                const double cos = sqrt(1 - (vk1 / (vk1 - vk2)));
+                const double sin = sqrt((vk1/ (vk1 - vk2)));
+                aX1.row(i) = cos * x1.row(i) + sin * x2.row(i);
             }
-        }
 
-        // Compute per face directions as the average of vertex directions
-        Eigen::MatrixXd fdir1(numFaces, 3);
-        Eigen::MatrixXd fdir2(numFaces, 3);
-        for(int i=0; i<numFaces; i++){
-            Eigen::Vector3d a1(0,0,0);
-            Eigen::Vector3d a2(0,0,0);
-            for(int j=0; j<3; j++){
-                a1 += adir1.row(F.coeff(i,j));
-                a2 += adir2.row(F.coeff(i,j));
+            // Compute per face directions as the average of vertex directions
+            Eigen::MatrixXd fA1(numFaces, 3);
+            for(int i=0; i<numFaces; i++){
+                Eigen::Vector3d a1(0,0,0);
+                for(int j=0; j<3; j++) a1 += aX1.row(F.coeff(i,j));
+                fA1.row(i) = a1 / 3;
             }
-            a1 /= 3;
-            a2 /= 3;
+            
+            // Barycenters
+            Eigen::MatrixXd B;
+            igl::barycenter(V, F, B);
 
-            fdir1.row(i) = a1;
-            fdir2.row(i) = a2;
+            Eigen::MatrixXd B1, B2, B3;
+            igl::local_basis(V, F, B1, B2, B3);
+            Eigen::MatrixXd fA2 = igl::rotate_vectors(fA1, Eigen::VectorXd::Constant(1, igl::PI / 2), B1, B2);
+
+            // Parse data
+            cgeomParseMatrixXd(fA1, outX1Coords, outX1Count);
+            cgeomParseMatrixXd(fA2, outX2Coords, outX2Count);
+            cgeomParseMatrixXd(B, outBarycentersCoords, outBarycentersCount);
+
+            // Release Eigen Matrix Memory
+            F.setZero();
+            V.setZero();
+            x1.setZero();
+            x2.setZero();
+            fA1.setZero();
+            fA2.setZero();
+            k1.setZero();
+            k2.setZero();
+            aX1.setZero();
+            B.setZero();
+            B1.setZero();
+            B2.setZero();
+            B3.setZero();
+
+            *errorMessage = "Success";
+            return 0;
         }
-
-        // Parse data
-        cgeomParseMatrixXd(fdir1, outX1, outX1Count);
-        cgeomParseMatrixXd(fdir2, outX2, outX2Count);
-
-        // Release Eigen Matrix Memory
-        F.setZero();
-        V.setZero();
-        adir1.setZero();
-        adir2.setZero();
-        fdir1.setZero();
-        fdir2.setZero();
-        dir1.setZero();
-        dir2.setZero();
-        val1.setZero();
-        val2.setZero();
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
     }
 
     CGEOM_QUANT_API void cgeomPerVertexPrincipalCurvatures(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outK1Count, size_t *outK2Count, double **outX1Coords, double **outX2Coords, double **outK1, double **outK2)
@@ -171,7 +176,7 @@ namespace CGeom
         k2.setZero();
     }
 
-    CGEOM_QUANT_API void cgeomPerFacePrincipalCurvatures(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outK1Count, size_t *outK2Count, double **outX1Coords, double **outX2Coords, double **outK1, double **outK2)
+    CGEOM_QUANT_API void cgeomPerFacePrincipalCurvatures(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outK1Count, size_t *outK2Count, size_t *outBarycentersCount, double **outX1Coords, double **outX2Coords, double **outK1, double **outK2, double **outBarycentersCoords)
     {
         // Build mesh
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -198,22 +203,23 @@ namespace CGeom
                 k1 += vK1(F.coeff(i,j));
                 k2 += vK2(F.coeff(i,j));
             }
-            x1 /= 3;
-            x2 /= 3;
-            k1 /= 3;
-            k2 /= 3;
 
-            fX1.row(i) = x1;
-            fX2.row(i) = x2;
-            fK1(i) = k1;
-            fK2(i) = k2;
+            fX1.row(i) = x1 / 3;
+            fX2.row(i) = x2 / 3;
+            fK1(i) = k1 / 3;
+            fK2(i) = k2 / 3;
         }
+
+        // Barycenters
+        Eigen::MatrixXd B;
+        igl::barycenter(V, F, B);
 
         // Parse data
         cgeomParseMatrixXd(fX1, outX1Coords, outX1CoordsCount);
         cgeomParseMatrixXd(fX2, outX2Coords, outX2CoordsCount);
         cgeomParseMatrixXd(fK1, outK1, outK1Count);
         cgeomParseMatrixXd(fK2, outK2, outK2Count);
+        cgeomParseMatrixXd(B, outBarycentersCoords, outBarycentersCount);
 
         // Release Eigen Matrix Memory
         V.setZero();

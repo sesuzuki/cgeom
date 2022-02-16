@@ -36,6 +36,7 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddPointParameter("Barycenters", "Barycenters", "Barycenters of mesh faces.", GH_ParamAccess.list);
             pManager.AddVectorParameter("Dir1", "D1", "First principal curvature direction.", GH_ParamAccess.list);
             pManager.AddVectorParameter("Dir2", "D2", "Second principal curvature direction.", GH_ParamAccess.list);
         }
@@ -51,10 +52,12 @@ namespace CGeomGH.Quantities
             DA.GetData(0, ref m);
 
             Vector3d[] dir1, dir2;
-            DiscreteQuantities.PerFaceAsymptoticDirections(m, out dir1, out dir2);
+            Point3d[] b;
+            DiscreteQuantities.PerFaceAsymptoticDirections(m, out dir1, out dir2, out b);
 
-            DA.SetDataList(0, dir1);
-            DA.SetDataList(1, dir2);
+            DA.SetDataList(0, b);
+            DA.SetDataList(1, dir1);
+            DA.SetDataList(2, dir2);
         }
 
         /// <summary>
@@ -69,6 +72,11 @@ namespace CGeomGH.Quantities
                 //return Resources.IconForThisComponent;
                 return null;
             }
+        }
+
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>

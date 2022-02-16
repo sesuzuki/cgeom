@@ -1,24 +1,27 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/Processing/LaplacianForOpenMeshGH.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/Parameterization/NRosyGH.cs">
     <Files>
-      <File FileName="CGeomGH/Quantities/PerFacePrincipalCurvaturesGH.cs" Line="21" Column="23" />
-      <File FileName="CGeomGH/Parameterization/NRosyGH.cs" Line="63" Column="1" />
-      <File FileName="CGeomGH/Parameterization/SeamlessIntegerGH.cs" Line="1" Column="1" />
-      <File FileName="CGeomLib/Wrappers/Kernel.Parameterization.cs" Line="28" Column="1" />
-      <File FileName="CGeomLib/Tools/Parameterizations.cs" Line="90" Column="58" />
-      <File FileName="CGeomLib/Tools/Utils.cs" Line="28" Column="41" />
-      <File FileName="CGeomGH/Parameterization/QuadMeshExtractionGH.cs" Line="59" Column="51" />
-      <File FileName="CGeomGH/Processing/PlanarizationGH.cs" Line="1" Column="1" />
-      <File FileName="CGeomGH/Processing/LaplacianForOpenMeshGH.cs" Line="20" Column="18" />
+      <File FileName="CGeomLib/Tools/Utils.cs" Line="373" Column="56" />
+      <File FileName="CGeomGH/Quantities/PerFaceAsymptoticDirectionsGH.cs" Line="39" Column="1" />
+      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="83" Column="29" />
+      <File FileName="CGeomLib/Wrappers/Kernel.DiscreteQuantities.cs" Line="1" Column="1" />
+      <File FileName="CGeomLib/Wrappers/Kernel.Parameterization.cs" Line="23" Column="47" />
+      <File FileName="CGeomLib/Tools/Parameterizations.cs" Line="13" Column="35" />
+      <File FileName="CGeomGH/Parameterization/NRosyGH.cs" Line="72" Column="124" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="CGeom" expanded="True">
             <Node name="CGeomGH" expanded="True">
-              <Node name="Processing" expanded="True">
-                <Node name="LaplacianForOpenMeshGH.cs" selected="True" />
+              <Node name="Parameterization" expanded="True">
+                <Node name="NRosyGH.cs" selected="True" />
               </Node>
+              <Node name="Quantities" expanded="True" />
+            </Node>
+            <Node name="CGeomLib" expanded="True">
+              <Node name="Tools" expanded="True" />
+              <Node name="Wrappers" expanded="True" />
             </Node>
           </Node>
         </State>

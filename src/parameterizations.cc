@@ -14,6 +14,9 @@
 #include <igl/PI.h>
 #include <igl/serialize.h>
 #include <igl/planarize_quad_mesh.h>
+#include <igl/copyleft/comiso/frame_field.h>
+#include <igl/frame_field_deformer.h>
+#include <igl/frame_to_cross_field.h>
 #include <sstream>
 #include <qex.h>
 
@@ -39,8 +42,8 @@ namespace CGeom
         std::memcpy(*outData, m.data(), sF);
     }
 
-    CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, int *inConstrainedFaces, double *inConstrainedVectorFaces, 
-                                    int degree, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outBarycentersCoordsCount, size_t *outSingularitiesCount, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, double **outSingularities)
+    CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, int *inConstrainedFaces, double *inConstrainedVectorFaces,
+                                    int degree, double smoothness, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outBarycentersCoordsCount, size_t *outSingularitiesCount, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, double **outSingularities)
     {
         // Build mesh
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -52,12 +55,12 @@ namespace CGeom
 
         // Constrain one face
         Eigen::VectorXi b = Eigen::Map<Eigen::VectorXi>(inConstrainedFaces, numConstraints, 1); 
-        Eigen::MatrixXd bc = Eigen::Map<Eigen::MatrixXd>(inConstrainedVectorFaces,b.size(), 3);
+        Eigen::MatrixXd bc = Eigen::Map<Eigen::MatrixXd>(inConstrainedVectorFaces, numConstraints, 3);
 
-        Eigen::MatrixXd X1,X2;                                                      // Cross field
+        Eigen::MatrixXd X1,X2;
         // Create a smooth 4-RoSy field
         Eigen::VectorXd S;
-        igl::copyleft::comiso::nrosy(V, F, b, bc, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), degree, 0.5, X1, S);
+        igl::copyleft::comiso::nrosy(V, F, b, bc, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), degree, smoothness, X1, S);
 
         // Find the orthogonal vector
         Eigen::MatrixXd B1, B2, B3;

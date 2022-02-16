@@ -31,6 +31,7 @@ namespace CGeomGH.Parameterization
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
             pManager.AddIntegerParameter("ConstrainedFaces","CFace","Indexes of faces to be constrained.",GH_ParamAccess.list);
             pManager.AddVectorParameter("ConstrainedVectors", "CVec", "Representative vectors for constrained faces (one per face).", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Smoothness", "Smoothness", "Soft the strength of the soft constraints.", GH_ParamAccess.item, 0.5);
         }
 
         /// <summary>
@@ -54,9 +55,11 @@ namespace CGeomGH.Parameterization
             Mesh m = null;
             List<int> faceIdx = new List<int>();
             List<Vector3d> vec = new List<Vector3d>();
+            double smoothness = 0.5;
             DA.GetData(0, ref m);
             DA.GetDataList(1, faceIdx);
             DA.GetDataList(2, vec);
+            DA.GetData(3, ref smoothness);
 
             if (faceIdx.Count != vec.Count)
             {
@@ -66,7 +69,7 @@ namespace CGeomGH.Parameterization
 
             Vector3d[] x1, x2, barycenters;
             double[] singularities;
-            Parameterizations.BuildNRosy(m, faceIdx, vec, out x1, out x2, out barycenters, out singularities);
+            Parameterizations.BuildNRosy(m, faceIdx, vec, out x1, out x2, out barycenters, out singularities, 4, smoothness);
 
             DA.SetDataList(0, x1);
             DA.SetDataList(1, x2);

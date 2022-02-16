@@ -372,7 +372,7 @@ namespace CGeom.Tools
 
             for (int i = 0; i < data.GetLength(0); i++)
             {
-                pts[i] = new Point3d(data[i, 0], data[i, 1], 0);
+                pts[i] = new Point3d(data[i, 0], data[i, 1], data[i, 2]);
             }
 
             return pts;
