@@ -58,7 +58,7 @@ namespace CGeomGH.Processing
             DA.GetData(2, ref tol);
             DA.GetData(3, ref iterations);
 
-            DiscreteOperators.LaplacianSmoothingForOpenMesh(iterations, ref m, anchors, 1e-3);
+            CGeom.Tools.Processing.LaplacianSmoothingForOpenMesh(iterations, ref m, anchors, 1e-3);
 
             DA.SetData(0, m);
         }

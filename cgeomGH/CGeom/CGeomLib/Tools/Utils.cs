@@ -12,6 +12,8 @@ namespace CGeom.Tools
 
         public static void ParseTriangleRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
         {
+            if (mesh == null) throw new ArgumentException("Invalid mesh");
+
             coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
             faces = Utils.FlattenTriaFaceData(mesh, Utils.StorageOrder.ColumnMajor);
 
@@ -21,6 +23,8 @@ namespace CGeom.Tools
 
         public static void ParseQuadRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
         {
+            if (mesh == null) throw new ArgumentException("Invalid mesh");
+
             coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
             faces = Utils.FlattenQuadFaceData(mesh, Utils.StorageOrder.ColumnMajor);
 

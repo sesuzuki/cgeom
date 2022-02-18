@@ -36,7 +36,6 @@ namespace CGeomGH.Quantities
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Barycenters", "Barycenters", "Barycenters of mesh faces.", GH_ParamAccess.list);
             pManager.AddNumberParameter("K1", "K1", "First principal curvature value.", GH_ParamAccess.list);
             pManager.AddNumberParameter("K2", "K2", "Second principal curvature value.", GH_ParamAccess.list);
             pManager.AddVectorParameter("Dir1", "D1", "First principal curvature direction.", GH_ParamAccess.list);
@@ -55,14 +54,12 @@ namespace CGeomGH.Quantities
 
             double[] val1, val2;
             Vector3d[] dir1, dir2;
-            Point3d[] barycenters;
-            DiscreteQuantities.PerFacePrincipalCurvatures(m, out val1, out val2, out dir1, out dir2, out barycenters);
+            DiscreteQuantities.PerFacePrincipalCurvatures(m, out val1, out val2, out dir1, out dir2);
 
-            DA.SetDataList(0, barycenters);
-            DA.SetDataList(1, val1);
-            DA.SetDataList(2, val2);
-            DA.SetDataList(3, dir1);
-            DA.SetDataList(4, dir2);
+            DA.SetDataList(0, val1);
+            DA.SetDataList(1, val2);
+            DA.SetDataList(2, dir1);
+            DA.SetDataList(3, dir2);
         }
 
         public override GH_Exposure Exposure

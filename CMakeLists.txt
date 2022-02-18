@@ -27,7 +27,6 @@ find_package(OpenMesh REQUIRED)
 add_subdirectory(dependencies/libQEx)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/libQEx/interfaces/c)
 
-
 ################################################################################
 # Library
 ################################################################################

@@ -1,27 +1,23 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/Parameterization/NRosyGH.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomLib/Wrappers/Kernel.Parameterization.cs">
     <Files>
-      <File FileName="CGeomLib/Tools/Utils.cs" Line="373" Column="56" />
-      <File FileName="CGeomGH/Quantities/PerFaceAsymptoticDirectionsGH.cs" Line="39" Column="1" />
-      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="83" Column="29" />
-      <File FileName="CGeomLib/Wrappers/Kernel.DiscreteQuantities.cs" Line="1" Column="1" />
-      <File FileName="CGeomLib/Wrappers/Kernel.Parameterization.cs" Line="23" Column="47" />
-      <File FileName="CGeomLib/Tools/Parameterizations.cs" Line="13" Column="35" />
-      <File FileName="CGeomGH/Parameterization/NRosyGH.cs" Line="72" Column="124" />
+      <File FileName="CGeomGH/Quantities/MeanCurvatureGH.cs" Line="50" Column="13" />
+      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="108" Column="20" />
+      <File FileName="CGeomLib/Tools/NRosy.cs" Line="40" Column="1" />
+      <File FileName="CGeomGH/Parameterization/SeamlessIntegerGH.cs" Line="63" Column="37" />
+      <File FileName="CGeomGH/Parameterization/DeconstructNRosyGH.cs" Line="61" Column="40" />
+      <File FileName="CGeomGH/Parameterization/4RosyGH.cs" Line="43" Column="55" />
+      <File FileName="CGeomLib/Wrappers/Kernel.Parameterization.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="CGeom" expanded="True">
-            <Node name="CGeomGH" expanded="True">
-              <Node name="Parameterization" expanded="True">
-                <Node name="NRosyGH.cs" selected="True" />
-              </Node>
-              <Node name="Quantities" expanded="True" />
-            </Node>
             <Node name="CGeomLib" expanded="True">
               <Node name="Tools" expanded="True" />
-              <Node name="Wrappers" expanded="True" />
+              <Node name="Wrappers" expanded="True">
+                <Node name="Kernel.Parameterization.cs" selected="True" />
+              </Node>
             </Node>
           </Node>
         </State>

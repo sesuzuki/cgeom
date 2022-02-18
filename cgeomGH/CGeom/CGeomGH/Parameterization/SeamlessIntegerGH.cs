@@ -18,8 +18,8 @@ namespace CGeomGH.Parameterization
         /// new tabs/panels will automatically be created.
         /// </summary>
         public SeamlessIntegerGH()
-          : base("SIG Parameterization", "SIGParam",
-            "Seamless Integer Grid Parameterization",
+          : base("SIGParam", "SIGParam",
+            "Seamless-Integer-Grid Parameterization",
             "CGeom", "Parameterization")
         {
         }
@@ -30,8 +30,7 @@ namespace CGeomGH.Parameterization
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddVectorParameter("X1", "X1", "First orthogonal vectors of the frame field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X2", "X2", "Second orthogonal vectors of the frame field.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("NRosy", "NRosy", "NRosy field.", GH_ParamAccess.item);
             pManager.AddNumberParameter("GradSize","GradSize","Gradient size.", GH_ParamAccess.item,10);
             pManager.AddNumberParameter("Stiffness", "Stiffness", "Stiffness", GH_ParamAccess.item,5.0);
             pManager.AddBooleanParameter("Round", "Round", "Direct round", GH_ParamAccess.item, false);
@@ -55,23 +54,21 @@ namespace CGeomGH.Parameterization
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<Vector3d> X1 = new List<Vector3d>();
-            List<Vector3d> X2 = new List<Vector3d>();
+            NRosy rosy = new NRosy();
             double gradient_size = 10;
             int iter = 0;
             double stiffness = 5.0;
             bool direct_round = false;
             DA.GetData(0, ref m);
-            DA.GetDataList(1, X1);
-            DA.GetDataList(2, X2);
-            DA.GetData(3, ref gradient_size);
-            DA.GetData(4, ref stiffness);
-            DA.GetData(5, ref direct_round);
-            DA.GetData(6, ref iter);
+            DA.GetData(1, ref rosy);
+            DA.GetData(2, ref gradient_size);
+            DA.GetData(3, ref stiffness);
+            DA.GetData(4, ref direct_round);
+            DA.GetData(5, ref iter);
 
             Vector3d[] UV;
             MeshFace[] FUV;
-            Parameterizations.BuildSeamlessIntegerParameterization(m, X1, X2, gradient_size, stiffness, direct_round, iter, out UV, out FUV);
+            Parameterizations.BuildSeamlessIntegerParameterization(m, rosy.X1, rosy.X2, gradient_size, stiffness, direct_round, iter, out UV, out FUV);
 
             DA.SetDataList(0, UV);
             DA.SetDataList(1, FUV);

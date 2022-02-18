@@ -17,6 +17,7 @@
 #include <igl/copyleft/comiso/frame_field.h>
 #include <igl/frame_field_deformer.h>
 #include <igl/frame_to_cross_field.h>
+#include <igl/copyleft/comiso/frame_field.h>
 #include <sstream>
 #include <qex.h>
 
@@ -42,8 +43,10 @@ namespace CGeom
         std::memcpy(*outData, m.data(), sF);
     }
 
-    CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, int *inConstrainedFaces, double *inConstrainedVectorFaces,
-                                    int degree, double smoothness, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outBarycentersCoordsCount, size_t *outSingularitiesCount, double **outX1Coords, double **outX2Coords, double **outBarycentersCoords, double **outSingularities)
+    CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, 
+                                    int *inConstrainedFaces, double *inConstrainedVectorFaces, int degree,
+                                    size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outSingularitiesCount, 
+                                    double **outX1Coords, double **outX2Coords, double **outSingularities)
     {
         // Build mesh
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -53,14 +56,14 @@ namespace CGeom
         Eigen::MatrixXd B;
         igl::barycenter(V, F, B);
 
-        // Constrain one face
+        // Hard constraints
         Eigen::VectorXi b = Eigen::Map<Eigen::VectorXi>(inConstrainedFaces, numConstraints, 1); 
         Eigen::MatrixXd bc = Eigen::Map<Eigen::MatrixXd>(inConstrainedVectorFaces, numConstraints, 3);
 
         Eigen::MatrixXd X1,X2;
         // Create a smooth 4-RoSy field
         Eigen::VectorXd S;
-        igl::copyleft::comiso::nrosy(V, F, b, bc, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), degree, smoothness, X1, S);
+        igl::copyleft::comiso::nrosy(V, F, b, bc, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), degree, 0.4, X1, S);
 
         // Find the orthogonal vector
         Eigen::MatrixXd B1, B2, B3;
@@ -68,9 +71,57 @@ namespace CGeom
         X2 = igl::rotate_vectors(X1, Eigen::VectorXd::Constant(1, igl::PI / 2), B1, B2);
 
         // output vector field and barycenters
-        cgeomParseMatrixXd(B, outBarycentersCoords, outBarycentersCoordsCount);
         cgeomParseMatrixXd(X1, outX1Coords, outX1CoordsCount);
         cgeomParseMatrixXd(X2, outX2Coords, outX2CoordsCount);
+        cgeomParseMatrixXd(S, outSingularities, outSingularitiesCount);
+    }
+
+    CGEOM_PARAM_API void cgeomNRosyFromFrameField(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, int *inConstrainedFaces, double *inX1, double *inX2, int degree,
+                                    size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outSingularitiesCount, 
+                                    double **outX1Coords, double **outX2Coords, double **outSingularities)
+    {
+        // Build mesh
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+        Eigen::VectorXi b = Eigen::Map<Eigen::VectorXi>(inConstrainedFaces, numConstraints, 1);
+        Eigen::MatrixXd bc1 = Eigen::Map<Eigen::MatrixXd>(inX1, numConstraints, 3);
+        Eigen::MatrixXd bc2 = Eigen::Map<Eigen::MatrixXd>(inX2, numConstraints, 3);
+
+        // Interpolate the frame field
+        Eigen::MatrixXd FF1, FF2;
+        igl::copyleft::comiso::frame_field(V, F, b, bc1, bc2, FF1, FF2);
+
+        // Deform the mesh to transform the frame field in a cross field
+        Eigen::MatrixXd V_deformed, FF1_deformed, FF2_deformed;
+        igl::frame_field_deformer(V,F,FF1,FF2,V_deformed,FF1_deformed,FF2_deformed);
+
+        // Compute face barycenters deformed mesh
+        Eigen::MatrixXd B_deformed;
+        igl::barycenter(V_deformed, F, B_deformed);
+
+        // Find the closest crossfield to the deformed frame field
+        Eigen::MatrixXd X1_deformed;
+        igl::frame_to_cross_field(V,F,FF1_deformed,FF2_deformed,X1_deformed);
+
+        // Find a smooth crossfield that interpolates the deformed constraints
+        Eigen::MatrixXd bc_x(b.size(),3);
+        for (unsigned i=0; i<b.size();++i)
+        {
+            bc_x.row(i) = X1_deformed.row(b(i));
+        }
+
+        // Create a smooth 4-RoSy field
+        Eigen::VectorXd S;
+        igl::copyleft::comiso::nrosy(V, F, b, bc_x, Eigen::VectorXi(), Eigen::VectorXd(), Eigen::MatrixXd(), degree, 0.4, X1_deformed, S);
+
+        // Find the orthogonal vector
+        Eigen::MatrixXd B1, B2, B3;
+        igl::local_basis(V, F, B1, B2, B3);
+        Eigen::MatrixXd X2_deformed = igl::rotate_vectors(X1_deformed, Eigen::VectorXd::Constant(1, igl::PI / 2), B1, B2);
+
+        // output vector field and barycenters
+        cgeomParseMatrixXd(X1_deformed, outX1Coords, outX1CoordsCount);
+        cgeomParseMatrixXd(X2_deformed, outX2Coords, outX2CoordsCount);
         cgeomParseMatrixXd(S, outSingularities, outSingularitiesCount);
     }
 
@@ -187,7 +238,7 @@ namespace CGeom
         free(quadMesh.quads);
     }
 
-    CGEOM_PARAM_API void cgeomPlanarization(const int inVertexCount, const int inQuadsCount, double *inCoords, int *inQuads, const int iterations, const double threshold, size_t *outVertexCount, double **outCoords)
+    CGEOM_PARAM_API void cgeomPlanarization(const int inVertexCount, const int inQuadsCount, double *inCoords, int *inQuads, const int iterations, const double threshold, size_t *outVertexCount, size_t *outPlanarityCount, double **outCoords, double **outPlanarity)
     {
         Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, inVertexCount, 3);
         Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inQuads, inQuadsCount, 4);
@@ -195,6 +246,11 @@ namespace CGeom
         Eigen::MatrixXd outV;
         igl::planarize_quad_mesh(V, F, iterations, threshold, outV);
 
+        Eigen::VectorXd outP;
+        igl::quad_planarity(V,F,outP);
+
         cgeomParseMatrixXd(outV, outCoords, outVertexCount);
+        cgeomParseMatrixXd(outP, outPlanarity, outPlanarityCount);
     }
+
 }

@@ -39,6 +39,7 @@ namespace CGeomGH.Processing
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "M", "Resulting mesh.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Planarity", "Planarity", "Planarity.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -61,10 +62,11 @@ namespace CGeomGH.Processing
                 return;
             }
 
-
-            Mesh pm = Parameterizations.Planarization(m, iterations, threshold);
+            double[] planarity;
+            Mesh pm = Parameterizations.Planarization(m, iterations, out planarity, threshold);
 
             DA.SetData(0, pm);
+            DA.SetDataList(1, planarity);
         }
 
         /// <summary>

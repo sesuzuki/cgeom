@@ -18,7 +18,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         public NRosyGH()
           : base("NRosy", "NRosy",
-            "Create a smooth N-RoSy field.",
+            "Create a N-rotationally Symmetric Tangent Field.",
             "CGeom", "Parameterization")
         {
         }
@@ -29,9 +29,10 @@ namespace CGeomGH.Parameterization
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("ConstrainedFaces","CFace","Indexes of faces to be constrained.",GH_ParamAccess.list);
-            pManager.AddVectorParameter("ConstrainedVectors", "CVec", "Representative vectors for constrained faces (one per face).", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Smoothness", "Smoothness", "Soft the strength of the soft constraints.", GH_ParamAccess.item, 0.5);
+            pManager.AddIntegerParameter("b","b", "Sparse set of indices of constrained faces.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("bc1", "bc1", "First representative vector for constrained faces (one per face).", GH_ParamAccess.list);
+            pManager.AddVectorParameter("bc2", "bc2", "Second representative vector for constrained faces (one per face).", GH_ParamAccess.list);
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -39,10 +40,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddVectorParameter("X1", "X1", "First orthogonal vectors of the frame field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X2", "X2", "Second orthogonal vectors of the frame field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("Barycenters", "Barycenters", "Face barycenters.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Singularities", "Singularities", "Singularity index for each vertex.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("N-Rosy", "N-Rosy", "N-rotationally Symmetric Tangent Field.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -53,28 +51,22 @@ namespace CGeomGH.Parameterization
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<int> faceIdx = new List<int>();
-            List<Vector3d> vec = new List<Vector3d>();
-            double smoothness = 0.5;
+            List<int> B = new List<int>();
+            List<Vector3d> FF1 = new List<Vector3d>();
+            List<Vector3d> FF2 = new List<Vector3d>();
+
             DA.GetData(0, ref m);
-            DA.GetDataList(1, faceIdx);
-            DA.GetDataList(2, vec);
-            DA.GetData(3, ref smoothness);
+            DA.GetDataList(1, B);
+            DA.GetDataList(2, FF1);
+            DA.GetDataList(3, FF2);
 
-            if (faceIdx.Count != vec.Count)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The number of constrained faces doesn't match the number of representative vectors.");
-                return;
-            }
+            if (B.Count == 0) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid number of constraints");
+            if (m.Faces.Count < 20) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The input mesh is too coarse.");
+            if (B.Count > (m.Faces.Count * 0.1)) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Too many constraints for the given mesh resolution.");
 
-            Vector3d[] x1, x2, barycenters;
-            double[] singularities;
-            Parameterizations.BuildNRosy(m, faceIdx, vec, out x1, out x2, out barycenters, out singularities, 4, smoothness);
+            NRosy rosy = new NRosy(m, B, FF1, FF2);
 
-            DA.SetDataList(0, x1);
-            DA.SetDataList(1, x2);
-            DA.SetDataList(2, barycenters);
-            DA.SetDataList(3, singularities);
+            DA.SetData(0, rosy);
         }
 
         /// <summary>

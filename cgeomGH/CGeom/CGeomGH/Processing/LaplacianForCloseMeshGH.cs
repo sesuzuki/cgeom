@@ -57,7 +57,7 @@ namespace CGeomGH.Processing
             DA.GetData(2, ref tol);
             DA.GetData(3, ref iterations);
 
-            DiscreteOperators.LaplacianSmoothingForCloseMesh(iterations, ref m, smoothing, tol);
+            CGeom.Tools.Processing.LaplacianSmoothingForCloseMesh(iterations, ref m, smoothing, tol);
 
             DA.SetData(0, m);
         }

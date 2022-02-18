@@ -10,25 +10,6 @@ namespace CGeom.Tools
 {
     public static class Parameterizations
     {
-        public static void BuildNRosy(Mesh mesh, IEnumerable<int> constraintFaces, IEnumerable<Vector3d> constraintVectorFaces, out Vector3d[] x1, out Vector3d[] x2, out Vector3d[] barycenters, out double[] singularities, int degree=4, double smoothness = 0.5)
-        {
-            // Parse mesh data
-            double[] coords;
-            int[] faces;
-            int numVertices, numFaces;
-            ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
-
-            double[] vectorConstraint = FlattenVector3dData(constraintVectorFaces.ToArray(), StorageOrder.ColumnMajor);
-            IntPtr ptrX1, ptrX2, ptrB, ptrS;
-            int outX1CoordsCount, outX2CoordsCount, outBarycentersCoordsCount, outSingularitiesCount;
-            Kernel.Parameterization.CgeomNRosy(numVertices, numFaces, constraintFaces.Count(), coords, faces, constraintFaces.ToArray(), vectorConstraint, degree, smoothness, out outX1CoordsCount, out outX2CoordsCount, out outBarycentersCoordsCount, out outSingularitiesCount, out ptrX1, out ptrX2, out ptrB, out ptrS);
-
-            x1 = ParsePointerToVectorArr(ptrX1, outX1CoordsCount);
-            x2 = ParsePointerToVectorArr(ptrX2, outX2CoordsCount);
-            barycenters = ParsePointerToVectorArr(ptrB, outBarycentersCoordsCount);
-            singularities = ParsePointerToDoubleArr(ptrS, outSingularitiesCount);
-        }
-
         public static void BuildSeamlessIntegerParameterization(Mesh mesh, IEnumerable<Vector3d> X1, IEnumerable<Vector3d> X2, double gradient_size, double stiffness, bool direct_round, int numIterations, out Vector3d[] UV, out MeshFace[] FUV)
         {
             // Parse mesh data
@@ -74,19 +55,20 @@ namespace CGeom.Tools
             return Utils.GetQuadMesh(outCoords, outQuads);
         }
 
-        public static Mesh Planarization(Mesh mesh, int iterations, double threshold = 1e-3)
+        public static Mesh Planarization(Mesh mesh, int iterations, out double[] planarity, double threshold = 1e-3)
         {
             double[] inCoords;
             int[] inQuads;
             int inVertexCount, inQuadsCount;
             ParseQuadRhinoMesh(mesh, out inCoords, out inQuads, out inVertexCount, out inQuadsCount);
 
-            int outVertexCount;
-            IntPtr ptrCoords;
-            Kernel.Parameterization.CgeomPlanarization(inVertexCount, inQuadsCount, inCoords, inQuads, iterations, threshold, out outVertexCount, out ptrCoords);
+            int outVertexCount, outPlanarityCount;
+            IntPtr ptrCoords, ptrPlanarity;
+            Kernel.Parameterization.CgeomPlanarization(inVertexCount, inQuadsCount, inCoords, inQuads, iterations, threshold, out outVertexCount, out outPlanarityCount, out ptrCoords, out ptrPlanarity);
 
             Mesh pm = mesh.DuplicateMesh();
             ParsePointerToMeshVertices(ptrCoords, outVertexCount, ref pm);
+            planarity = ParsePointerToDoubleArr(ptrPlanarity, outPlanarityCount);
 
             return pm;
         }

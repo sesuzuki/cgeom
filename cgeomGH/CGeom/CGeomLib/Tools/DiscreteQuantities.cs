@@ -34,23 +34,22 @@ namespace CGeom.Tools
             }
         }
 
-        public static void PerFaceAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2, out Point3d[] barycenters)
+        public static void PerFaceAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2)
         {
             int numVertices, numFaces;
             double[] coords;
             int[] faces;
             Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
-            IntPtr outX1Coords, outX2Coords, outBarycentersCoords, outErrorMsg;
-            int outX1CoordsCount, outX2CoordsCount, outBarycentersCount;
-            int errorCode = Kernel.DiscreteQuantities.CgeomPerFaceAsymptoticDirections(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outBarycentersCount, out outX1Coords, out outX2Coords, out outBarycentersCoords, out outErrorMsg);
+            IntPtr outX1Coords, outX2Coords, outErrorMsg;
+            int outX1CoordsCount, outX2CoordsCount;
+            int errorCode = Kernel.DiscreteQuantities.CgeomPerFaceAsymptoticDirections(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outX1Coords, out outX2Coords, out outErrorMsg);
 
             if (errorCode == 0)
             {
                 // Parse asymptotic directions
                 outVec1 = Utils.ParsePointerToVectorArr(outX1Coords, outX1CoordsCount);
                 outVec2 = Utils.ParsePointerToVectorArr(outX2Coords, outX2CoordsCount);
-                barycenters = Utils.ParsePointerToPointArr(outBarycentersCoords, outBarycentersCount);
             }
             else
             {
@@ -77,23 +76,36 @@ namespace CGeom.Tools
             X2 = Utils.ParsePointerToVectorArr(outX2Coords, outX2CoordsCount);
         }
 
-        public static void PerFacePrincipalCurvatures(Mesh mesh, out double[] K1, out double[] K2, out Vector3d[] X1, out Vector3d[] X2, out Point3d[] barycenters)
+        public static void PerFacePrincipalCurvatures(Mesh mesh, out double[] K1, out double[] K2, out Vector3d[] X1, out Vector3d[] X2)
         {
             int numVertices, numFaces;
             double[] coords;
             int[] faces;
             Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
-            IntPtr outX1Coords, outX2Coords, outBarycentersCoords, outK1, outK2;
-            int outX1CoordsCount, outX2CoordsCount, outK1Count, outK2Count, outBarycentersCount;
-            Kernel.DiscreteQuantities.CgeomPerFacePrincipalCurvatures(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outK1Count, out outK2Count, out outBarycentersCount, out outX1Coords, out outX2Coords, out outK1, out outK2, out outBarycentersCoords);
+            IntPtr outX1Coords, outX2Coords, outK1, outK2;
+            int outX1CoordsCount, outX2CoordsCount, outK1Count, outK2Count;
+            Kernel.DiscreteQuantities.CgeomPerFacePrincipalCurvatures(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outK1Count, out outK2Count, out outX1Coords, out outX2Coords, out outK1, out outK2);
 
             // Parse principal curvatures
             K1 = Utils.ParsePointerToDoubleArr(outK1, outK1Count);
             K2 = Utils.ParsePointerToDoubleArr(outK2, outK2Count);
             X1 = Utils.ParsePointerToVectorArr(outX1Coords, outX1CoordsCount);
             X2 = Utils.ParsePointerToVectorArr(outX2Coords, outX2CoordsCount);
-            barycenters = Utils.ParsePointerToPointArr(outBarycentersCoords, outBarycentersCount);
+        }
+
+        public static Point3d[] Barycenters(Mesh mesh)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            IntPtr outCoords;
+            int outCoordsCount;
+            Kernel.DiscreteQuantities.CgeomBarycenters(numVertices, numFaces, coords, faces, out outCoordsCount, out outCoords);
+
+            return Utils.ParsePointerToPointArr(outCoords, outCoordsCount);
         }
 
         public static Vector3d[] PerVertexNormals(Mesh mesh)
