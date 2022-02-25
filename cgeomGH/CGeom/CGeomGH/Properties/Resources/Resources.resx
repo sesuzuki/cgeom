@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<resheader name="resmimetype">
+		<value>text/microsoft-resx</value>
+	</resheader>
+	<resheader name="version">
+		<value>2.0</value>
+	</resheader>
+	<resheader name="reader">
+		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<resheader name="writer">
+		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<data name="DeconstructNRosy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/deconstructnrosy.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="NRosy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/nrosy.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="QuadExtraction" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/quadextraction.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="Seamless" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/seamless.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="LaplaceC" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/laplaceclose.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="LaplaceO" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/laplaceopen.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="Planarization" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/planarization.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="RotateVectors" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/rotatevectors.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="Barycenters" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/barycenters.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="Gauss" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/gauss.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="LocalBasis" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/localBasis.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+	<data name="Mean" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/mean.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+    <data name="PerFaceAsymptoticDirections" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/perFaceAsymptoticDirections.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+    <data name="PerFaceNormals" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/perFaceNormals.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+    <data name="PerFacePrincipalCurvatures" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/perFacePrincipalCurvatures.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+    <data name="PerVertexAsymptoticDirections" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/perVertexAsymptoticDirections.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+    <data name="PerVertexNormals" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/perVertexNormals.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+    <data name="PerVertexPrincipalCurvatures" type="System.Resources.ResXFileRef, System.Windows.Forms">
+        <value>../Resources/perVertexPrincipalCurvatures.png; System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    </data>
+</root>

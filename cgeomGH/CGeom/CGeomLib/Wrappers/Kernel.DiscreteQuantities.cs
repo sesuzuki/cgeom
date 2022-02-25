@@ -14,7 +14,7 @@ namespace CGeom.Wrappers
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerFaceAsymptoticDirections")]
-            internal static extern int CgeomPerFaceAsymptoticDirections(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr error);
+            internal static extern int CgeomPerFaceAsymptoticDirections(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out int outVanishingCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outVanishingIndex, out IntPtr error);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerFacePrincipalCurvatures")]
@@ -22,7 +22,7 @@ namespace CGeom.Wrappers
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerVertexAsymptoticDirections")]
-            internal static extern int CgeomPerVertexAsymptoticDirections(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr error);
+            internal static extern int CgeomPerVertexAsymptoticDirections(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outX1CoordsCount, out int outX2CoordsCount, out int outVanishingCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outVanishingIndex, out IntPtr error);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPerVertexPrincipalCurvatures")]
@@ -55,6 +55,10 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomMeanCurvature")]
             internal static extern void CgeomMeanCurvature(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out IntPtr outH);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomLocalBasis")]
+            internal static extern void CgeomLocalBasis(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outX3Coords);
         }
     }
 }

@@ -23,7 +23,7 @@
 
 extern "C"
 {
-#include "parameterizations.h"
+#include "processing.h"
 }
 
 namespace CGeom
@@ -37,6 +37,13 @@ namespace CGeom
     }
 
     CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXi m, int **outData, size_t *outCount){
+        *outCount = m.size();
+        auto sF = *outCount * sizeof(int);
+        *outData = static_cast<int *>(malloc(sF));
+        std::memcpy(*outData, m.data(), sF);
+    }
+
+    CGEOM_PARAM_API void cgeomParseStdVectorInt(const std::vector<int> m, int **outData, size_t *outCount){
         *outCount = m.size();
         auto sF = *outCount * sizeof(int);
         *outData = static_cast<int *>(malloc(sF));
@@ -253,4 +260,20 @@ namespace CGeom
         cgeomParseMatrixXd(outP, outPlanarity, outPlanarityCount);
     }
 
+    CGEOM_PARAM_API void cgeomRotateVectors(const int numVectors, double *inX1Coords, double *inB1Coords, double *inB2Coords, double *inAngle, size_t *outCount, double **outX1Coords){
+        Eigen::MatrixXd B1 = Eigen::Map<Eigen::MatrixXd>(inB1Coords,numVectors, 3);
+        Eigen::MatrixXd B2 = Eigen::Map<Eigen::MatrixXd>(inB2Coords,numVectors, 3);
+        Eigen::MatrixXd X1 = Eigen::Map<Eigen::MatrixXd>(inX1Coords,numVectors, 3);
+        Eigen::VectorXd ang = Eigen::Map<Eigen::VectorXd>(inAngle, numVectors);
+
+        Eigen::MatrixXd outX1 = igl::rotate_vectors(X1, ang, B1, B2);
+
+        cgeomParseMatrixXd(outX1, outX1Coords, outCount);
+
+        B1.setZero();
+        B2.setZero();
+        X1.setZero();
+        ang.setZero();
+        outX1.setZero();
+    }
 }

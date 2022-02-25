@@ -16,6 +16,8 @@ namespace CGeom
 
     CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXd m, int **outData, size_t *outCount);
 
+    CGEOM_PARAM_API void cgeomParseStdVectorInt(const std::vector<int> m, int **outData, size_t *outCount);
+
     CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, 
                                     int *inConstrainedFaces, double *inConstrainedVectorFaces, int degree,
                                     size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outSingularitiesCount, 
@@ -33,4 +35,5 @@ namespace CGeom
 
     CGEOM_PARAM_API void cgeomPlanarization(const int inVertexCount, const int inQuadsCount, double *inCoords, int *inQuads, const int iterations, const double threshold, size_t *outVertexCount, size_t *outPlanarityCount, double **outCoords, double **outPlanarity);
 
+    CGEOM_PARAM_API void cgeomRotateVectors(const int numVectors, double *inX1Coords, double *inB1Coords, double *inB2Coords, double *inAngle, size_t *outCount, double **outX1Coords);
 }

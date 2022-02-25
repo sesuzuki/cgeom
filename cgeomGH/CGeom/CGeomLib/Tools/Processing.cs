@@ -61,5 +61,21 @@ namespace CGeom.Tools
             // Parse new vertex positions
             ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
         }
+
+        public static void RotateVectors(IEnumerable<Vector3d> X1, IEnumerable<double> angles, IEnumerable<Vector3d> B1, IEnumerable<Vector3d> B2, out Vector3d[] X2)
+        {
+            double[] inX1Coords = Utils.FlattenVector3dData(X1);
+            double[] inB1Coords = Utils.FlattenVector3dData(B1);
+            double[] inB2Coords = Utils.FlattenVector3dData(B2);
+            int numVectors = X1.Count();
+
+            double[] inAngle = angles.ToArray();
+
+            IntPtr ptrX1;
+            int outCount;
+            Kernel.Processing.CgeomRotateVectors(numVectors, inX1Coords, inB1Coords, inB2Coords, inAngle, out outCount, out ptrX1);
+
+            X2 = Utils.ParsePointerToVectorArr(ptrX1, outCount);
+        }
     }
 }

@@ -34,13 +34,13 @@ namespace CGeom.Tools
 
             if (inFF2.Length == 0)
             {
-                Kernel.Parameterization.CgeomNRosy(numVertices, numFaces, B.Count(), coords, faces, B.ToArray(), inFF1, degree, out outX1CoordsCount, out outX2CoordsCount, out outSingularitiesCount, out ptrX1, out ptrX2, out ptrS);
+                Kernel.Processing.CgeomNRosy(numVertices, numFaces, B.Count(), coords, faces, B.ToArray(), inFF1, degree, out outX1CoordsCount, out outX2CoordsCount, out outSingularitiesCount, out ptrX1, out ptrX2, out ptrS);
             }
             else
             {
                 if (B.Count() != FF2.Count()) throw new ArgumentException("The number of constrained faces doesn't match the number of second representative vectors.");
 
-                Kernel.Parameterization.CgeomNRosyFromFrameField(numVertices, numFaces, B.Count(), coords, faces, B.ToArray(), inFF1, inFF2, degree, out outX1CoordsCount, out outX2CoordsCount, out outSingularitiesCount, out ptrX1, out ptrX2, out ptrS);
+                Kernel.Processing.CgeomNRosyFromFrameField(numVertices, numFaces, B.Count(), coords, faces, B.ToArray(), inFF1, inFF2, degree, out outX1CoordsCount, out outX2CoordsCount, out outSingularitiesCount, out ptrX1, out ptrX2, out ptrS);
             }
 
             X1 = ParsePointerToVectorArr(ptrX1, outX1CoordsCount);

@@ -20,7 +20,7 @@
 extern "C"
 {
 #include "discrete_quantities.h"
-#include "parameterizations.h"
+#include "processing.h"
 }
 
 namespace CGeom
@@ -29,7 +29,24 @@ namespace CGeom
     // Discrete Geometric Quantities And Operators
     ///////////////////////////////////////////////
 
-    CGEOM_QUANT_API int cgeomPerVertexAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1, double **outX2, const char **errorMessage){ 
+    CGEOM_QUANT_API void cgeomLocalBasis(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outCount, double **outX1Coords, double **outX2Coords, double **outX3Coords){
+        // Build mesh
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+
+        Eigen::MatrixXd B1, B2, B3;
+        igl::local_basis(V, F, B1, B2, B3);
+
+        cgeomParseMatrixXd(B1, outX1Coords, outCount);
+        cgeomParseMatrixXd(B2, outX2Coords, outCount);
+        cgeomParseMatrixXd(B3, outX3Coords, outCount);
+
+        B1.setZero();
+        B2.setZero();
+        B3.setZero();
+    }
+
+    CGEOM_QUANT_API int cgeomPerVertexAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, size_t *outVanishingCount, double **outX1, double **outX2, int **outVanishing, const char **errorMessage){ 
         try{
             // Build mesh
             Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -42,22 +59,28 @@ namespace CGeom
 
             // Compute asymptotic directions
             Eigen::MatrixXd aX1(numVertices,3), aX2(numVertices,3);
+            std::vector<int> aVan;
             for(int i=0; i<numVertices; i++){
                 const auto vk1 = k1(i);
                 const auto vk2 = k2(i);
 
-                if(vk1 * vk2 > 0) throw std::runtime_error("Synclastic curvature found at vertex " + std::to_string(i));
-                if(vk1 * vk2 == 0 && vk1==vk2) throw std::runtime_error("Flat area found at vertex " + std::to_string(i) + "; Infinite number of solutions.");
-
-                const double cos = sqrt(1 - (vk1 / (vk1 - vk2)));
-                const double sin = sqrt((vk1/ (vk1 - vk2)));
-                aX1.row(i) = (cos * x1.row(i) + sin * x2.row(i)).normalized();
-                aX2.row(i) = (cos * x1.row(i) - sin * x2.row(i)).normalized();
+                if(vk1 * vk2 > 0 || (vk1 * vk2 == 0 && vk1==vk2)) {
+                    aX1.row(i) = Eigen::Vector3d(0,0,0);
+                    aVan.push_back(i); 
+                }
+                else
+                {
+                    const double cos = sqrt(1 - (vk1 / (vk1 - vk2)));
+                    const double sin = sqrt((vk1/ (vk1 - vk2)));
+                    aX1.row(i) = (cos * x1.row(i) + sin * x2.row(i)).normalized();
+                    aX2.row(i) = (cos * x1.row(i) - sin * x2.row(i)).normalized();
+                }
             }
 
             // Parse data
             cgeomParseMatrixXd(aX1, outX1, outX1Count);
             cgeomParseMatrixXd(aX2, outX2, outX2Count);
+            cgeomParseStdVectorInt(aVan, outVanishing, outVanishingCount);
 
             // Release Eigen Matrix Memory
             F.setZero();
@@ -91,7 +114,7 @@ namespace CGeom
         cgeomParseMatrixXd(B, outCoords, outCoordsCount);
     }
 
-    CGEOM_QUANT_API int cgeomPerFaceAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1Coords, double **outX2Coords, const char **errorMessage){ 
+    CGEOM_QUANT_API int cgeomPerFaceAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, size_t *outVanishingCount, double **outX1Coords, double **outX2Coords, int **outVanishing, const char **errorMessage){ 
         try{
             // Build mesh
             Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
@@ -105,6 +128,7 @@ namespace CGeom
             // Compute per face curvature directions as the average of vertex values
             Eigen::MatrixXd fX1(numFaces, 3);
             Eigen::VectorXd thetas(numFaces);
+            std::vector<int> aVan;
             for(int i=0; i<numFaces; i++)
             {
                 Eigen::Vector3d x1 = vX1.row(F.coeff(i,0));
@@ -126,12 +150,16 @@ namespace CGeom
                 k2 /= 3;
 
                 // Compute assymptotic direction
-                if(k1 * k2 > 0) throw std::runtime_error("Synclastic curvature found at face " + std::to_string(i));
-                if(k1 * k2 == 0 && k1==k2) throw std::runtime_error("Flat area found at face " + std::to_string(i) + "; Infinite number of solutions.");
-
-                thetas(i) = 2 * atan(sqrt((2 * sqrt(k2 * (k2 - k1)) + k1 - 2 * k2) / k1));
-
-                fX1.row(i) = x1;
+                if(k1 * k2 > 0 || (k1 * k2 == 0 && k1==k2)) 
+                {
+                    fX1.row(i) = Eigen::Vector3d(0,0,0);
+                    aVan.push_back(i); 
+                }
+                else
+                {
+                    thetas(i) = 2 * atan(sqrt((2 * sqrt(k2 * (k2 - k1)) + k1 - 2 * k2) / k1));
+                    fX1.row(i) = x1;
+                }
             }
 
             Eigen::MatrixXd B1, B2, B3;
@@ -142,6 +170,7 @@ namespace CGeom
             // Parse data
             cgeomParseMatrixXd(fA1, outX1Coords, outX1Count);
             cgeomParseMatrixXd(fA2, outX2Coords, outX2Count);
+            cgeomParseStdVectorInt(aVan, outVanishing, outVanishingCount);
 
             // Release Eigen Matrix Memory
             F.setZero();

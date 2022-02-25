@@ -57,7 +57,7 @@
     <Compile Include="Tools\Utils.cs" />
     <Compile Include="Tools\Processing.cs" />
     <Compile Include="Wrappers\Kernel.cs" />
-    <Compile Include="Wrappers\Kernel.Parameterization.cs" />
+    <Compile Include="Wrappers\Kernel.Processing.cs" />
     <Compile Include="Tools\Parameterizations.cs" />
     <Compile Include="Tools\NRosy.cs" />
   </ItemGroup>

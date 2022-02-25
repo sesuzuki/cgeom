@@ -38,6 +38,7 @@ namespace CGeomGH.Quantities
         {
             pManager.AddVectorParameter("Dir1", "D1", "First principal curvature direction.", GH_ParamAccess.list);
             pManager.AddVectorParameter("Dir2", "D2", "Second principal curvature direction.", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("I", "I", "Indexes of vertices where asymptotic directions vanish.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -51,10 +52,12 @@ namespace CGeomGH.Quantities
             DA.GetData(0, ref m);
 
             Vector3d[] dir1, dir2;
-            DiscreteQuantities.PerVertexAsymptoticDirections(m, out dir1, out dir2);
+            int[] idx;
+            DiscreteQuantities.PerVertexAsymptoticDirections(m, out dir1, out dir2, out idx);
 
             DA.SetDataList(0, dir1);
             DA.SetDataList(1, dir2);
+            DA.SetDataList(2, idx);
         }
 
         /// <summary>
@@ -65,9 +68,7 @@ namespace CGeomGH.Quantities
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.PerVertexAsymptoticDirections;
             }
         }
 

@@ -12,9 +12,11 @@
 
 namespace CGeom
 {
-    CGEOM_QUANT_API int cgeomPerFaceAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1Coords, double **outX2Coords, const char **errorMessage);
+    CGEOM_QUANT_API void cgeomLocalBasis(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outCount, double **outX1Coords, double **outX2Coords, double **outX3Coords);
 
-    CGEOM_QUANT_API int cgeomPerVertexAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, double **outX1, double **outX2, const char **errorMessage);
+    CGEOM_QUANT_API int cgeomPerFaceAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, size_t *outVanishingCount, double **outX1Coords, double **outX2Coords, int **outVanishing, const char **errorMessage);
+
+    CGEOM_QUANT_API int cgeomPerVertexAsymptoticDirections(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1Count, size_t *outX2Count, size_t *outVanishingCount, double **outX1, double **outX2, int **outVanishing, const char **errorMessage);
 
     CGEOM_QUANT_API void cgeomPerVertexPrincipalCurvatures(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outK1Count, size_t *outK2Count, double **outX1Coords, double **outX2Coords, double **outK1, double **outK2);
     

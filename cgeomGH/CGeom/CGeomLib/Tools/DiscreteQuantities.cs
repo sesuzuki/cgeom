@@ -10,22 +10,23 @@ namespace CGeom.Tools
 {
     public static class DiscreteQuantities
     {
-        public static void PerVertexAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2)
+        public static void PerVertexAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2, out int[] outIndexes)
         {
             int numVertices, numFaces;
             double[] coords;
             int[] faces;
             Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
-            IntPtr outX1Coords, outX2Coords, outErrorMsg;
-            int outX1CoordsCount, outX2CoordsCount;
-            int errorCode = Kernel.DiscreteQuantities.CgeomPerVertexAsymptoticDirections(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outX1Coords, out outX2Coords, out outErrorMsg);
+            IntPtr outX1Coords, outX2Coords, outVanishingIdx, outErrorMsg;
+            int outX1CoordsCount, outX2CoordsCount, outVanishingCount;
+            int errorCode = Kernel.DiscreteQuantities.CgeomPerVertexAsymptoticDirections(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outVanishingCount, out outX1Coords, out outX2Coords, out outVanishingIdx, out outErrorMsg);
 
             if (errorCode == 0)
             {
                 // Parse asymptotic directions
                 outVec1 = Utils.ParsePointerToVectorArr(outX1Coords, outX1CoordsCount);
                 outVec2 = Utils.ParsePointerToVectorArr(outX2Coords, outX2CoordsCount);
+                outIndexes = Utils.ParsePointerToIntArr(outVanishingIdx, outVanishingCount);
             }
             else
             {
@@ -34,22 +35,23 @@ namespace CGeom.Tools
             }
         }
 
-        public static void PerFaceAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2)
+        public static void PerFaceAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2, out int[] outIndexes)
         {
             int numVertices, numFaces;
             double[] coords;
             int[] faces;
             Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
 
-            IntPtr outX1Coords, outX2Coords, outErrorMsg;
-            int outX1CoordsCount, outX2CoordsCount;
-            int errorCode = Kernel.DiscreteQuantities.CgeomPerFaceAsymptoticDirections(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outX1Coords, out outX2Coords, out outErrorMsg);
+            IntPtr outX1Coords, outX2Coords, outVanishingIdx, outErrorMsg;
+            int outX1CoordsCount, outX2CoordsCount, outVanishingCount;
+            int errorCode = Kernel.DiscreteQuantities.CgeomPerFaceAsymptoticDirections(numVertices, numFaces, coords, faces, out outX1CoordsCount, out outX2CoordsCount, out outVanishingCount, out outX1Coords, out outX2Coords, out outVanishingIdx, out outErrorMsg);
 
             if (errorCode == 0)
             {
                 // Parse asymptotic directions
                 outVec1 = Utils.ParsePointerToVectorArr(outX1Coords, outX1CoordsCount);
                 outVec2 = Utils.ParsePointerToVectorArr(outX2Coords, outX2CoordsCount);
+                outIndexes = Utils.ParsePointerToIntArr(outVanishingIdx, outVanishingCount);
             }
             else
             {
@@ -229,6 +231,22 @@ namespace CGeom.Tools
             Marshal.FreeCoTaskMem(h);
 
             return H;
+        }
+
+        public static void LocalBasis(Mesh mesh, out Vector3d[] B1, out Vector3d[] B2, out Vector3d[] B3)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            IntPtr ptrX1, ptrX2, ptrX3;
+            int outCount;
+            Kernel.DiscreteQuantities.CgeomLocalBasis(numVertices, numFaces, coords, faces, out outCount, out ptrX1, out ptrX2, out ptrX3);
+
+            B1 = Utils.ParsePointerToVectorArr(ptrX1, outCount);
+            B2 = Utils.ParsePointerToVectorArr(ptrX2, outCount);
+            B3 = Utils.ParsePointerToVectorArr(ptrX3, outCount);
         }
     }
 }

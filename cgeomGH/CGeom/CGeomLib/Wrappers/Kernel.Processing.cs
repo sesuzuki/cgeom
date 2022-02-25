@@ -6,7 +6,7 @@ namespace CGeom.Wrappers
 {
     public static partial class Kernel
     {
-        public static class Parameterization
+        public static class Processing
         {
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomSeamlessIntegerGridParameterization")]
@@ -35,6 +35,10 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomPlanarization")]
             internal static extern void CgeomPlanarization(int inVertexCount, int inQuadsCount, [In] double[] inCoords, [In] int[] inQuads, int iterations, double threshold, out int outVertexCount, out int outPlanarityCount, out IntPtr outCoords, out IntPtr outPlanarity);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomRotateVectors")]
+            internal static extern void CgeomRotateVectors(int numVectors, [In] double[] inX1Coords, [In] double[] inB1Coords, [In] double[] inB2Coords, [In] double[] inAngle, out int outCount, out IntPtr outX1Coords);
         }
     }
 }

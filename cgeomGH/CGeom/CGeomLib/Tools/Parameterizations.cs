@@ -26,7 +26,7 @@ namespace CGeom.Tools
 
             int numUV, numFUV;
             IntPtr ptrUV, ptrFUV;
-            Kernel.Parameterization.CgeomSeamlessIntegerGridParameterization(numVertices, numFaces, coords, faces, inCoordsX1, inCoordsX2, gradient_size, stiffness, direct_round, numIterations, out numUV, out numFUV, out ptrUV, out ptrFUV);
+            Kernel.Processing.CgeomSeamlessIntegerGridParameterization(numVertices, numFaces, coords, faces, inCoordsX1, inCoordsX2, gradient_size, stiffness, direct_round, numIterations, out numUV, out numFUV, out ptrUV, out ptrFUV);
 
             UV = ParsePointerToVectorArr(ptrUV, numUV, false);
             FUV = ParsePointerToMeshFaceArr(ptrFUV, numFUV);
@@ -47,7 +47,7 @@ namespace CGeom.Tools
 
             int outVertexCount, outQuadsCount;
             IntPtr ptrCoords, ptrQuads;
-            Kernel.Parameterization.CgeomQuadMeshExtraction(inVertexCount, inTriasCount, inUVCount, inFUVCount, inCoords, inTrias, inUV, inFUV, out outVertexCount, out outQuadsCount, out ptrCoords, out ptrQuads);
+            Kernel.Processing.CgeomQuadMeshExtraction(inVertexCount, inTriasCount, inUVCount, inFUVCount, inCoords, inTrias, inUV, inFUV, out outVertexCount, out outQuadsCount, out ptrCoords, out ptrQuads);
 
             double[] outCoords = ParsePointerToDoubleArr(ptrCoords, outVertexCount);
             int[] outQuads = ParsePointerToIntArr(ptrQuads, outQuadsCount);
@@ -64,7 +64,7 @@ namespace CGeom.Tools
 
             int outVertexCount, outPlanarityCount;
             IntPtr ptrCoords, ptrPlanarity;
-            Kernel.Parameterization.CgeomPlanarization(inVertexCount, inQuadsCount, inCoords, inQuads, iterations, threshold, out outVertexCount, out outPlanarityCount, out ptrCoords, out ptrPlanarity);
+            Kernel.Processing.CgeomPlanarization(inVertexCount, inQuadsCount, inCoords, inQuads, iterations, threshold, out outVertexCount, out outPlanarityCount, out ptrCoords, out ptrPlanarity);
 
             Mesh pm = mesh.DuplicateMesh();
             ParsePointerToMeshVertices(ptrCoords, outVertexCount, ref pm);

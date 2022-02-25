@@ -28,10 +28,32 @@
     <None Remove="DiscreteQuantities\" />
     <None Remove="Parameterization\" />
     <None Remove="Processing\" />
+    <None Remove="Properties\" />
+    <None Remove="Properties\Resources\" />
+    <None Remove="Properties\Resources\deconstructnrosy.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Quantities\" />
     <Folder Include="Parameterization\" />
     <Folder Include="Processing\" />
+    <Folder Include="Properties\" />
+    <Folder Include="Properties\Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Quantities\PerCornerNormalsGH.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources\deconstructnrosy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
