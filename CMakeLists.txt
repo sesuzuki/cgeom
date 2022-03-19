@@ -11,6 +11,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 # CMake plugin for vscode
 include(CMakeToolsHelpers OPTIONAL)
 
+# Add math defintions
+add_definitions(-D_USE_MATH_DEFINES)
+
 ################################################################################
 list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
