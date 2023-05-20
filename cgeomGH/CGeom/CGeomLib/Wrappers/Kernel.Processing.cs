@@ -39,6 +39,16 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomRotateVectors")]
             internal static extern void CgeomRotateVectors(int numVectors, [In] double[] inX1Coords, [In] double[] inB1Coords, [In] double[] inB2Coords, [In] double[] inAngle, out int outCount, out IntPtr outX1Coords);
+
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomParallelTransport")]
+            internal static extern int CgeomParallelTransport(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, int inSourceVertex, double initialPara, double initialPerp, out int outCount, out IntPtr outCoords, out IntPtr outVecCoords, out IntPtr error);
+
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomEdgeVectors")]
+            internal static extern int CgeomEdgeVectors(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outCount, out IntPtr outEdgeMidCoords, out IntPtr outParCoords, out IntPtr outPerpCoords, out IntPtr error);
         }
     }
 }

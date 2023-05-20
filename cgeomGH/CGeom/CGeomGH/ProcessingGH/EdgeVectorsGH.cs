@@ -5,9 +5,9 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Processing
+namespace CGeomGH.ProcessingGH
 {
-    public class LaplacianForOpenMeshGH : GH_Component
+    public class EdgeVectorsGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.Processing
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public LaplacianForOpenMeshGH()
-          : base("LaplacianOpenMesh", "LaplacianOpenMesh",
-            "Apply a Laplacian smoothing to a given open triangular mesh.",
-            "CGeom", "Processing")
+        public EdgeVectorsGH()
+          : base("EdgeVectors", "EdgeVec",
+                "Compute edge vectors.",
+                "CGeom", "Processing")
         {
         }
 
@@ -29,9 +29,6 @@ namespace CGeomGH.Processing
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddPointParameter("Anchors", "Anchors", "Location of vertices to be fixed during smoothing.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Tolerance", "Tolerance", "Threshold distance for searching anchor vertices.", GH_ParamAccess.item, 1e-3);
-            pManager.AddIntegerParameter("Iterations", "Iterations", "Number of iterations.", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -39,7 +36,9 @@ namespace CGeomGH.Processing
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "M", "Resulting mesh.", GH_ParamAccess.item);
+            pManager.AddPointParameter("MidPoints", "mP", "Edge mid point", GH_ParamAccess.list);
+            pManager.AddVectorParameter("ParallelVectors", "ParVec", "Parallel edge vector", GH_ParamAccess.list);
+            pManager.AddVectorParameter("PerpendicularVectors", "PerVec", "Perpendicular edge vector", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -50,17 +49,20 @@ namespace CGeomGH.Processing
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            int iterations = 1;
-            double tol = 1e-3;
-            List<Point3d> anchors = new List<Point3d>();
             DA.GetData(0, ref m);
-            DA.GetDataList(1, anchors);
-            DA.GetData(2, ref tol);
-            DA.GetData(3, ref iterations);
 
-            CGeom.Tools.Processing.LaplacianSmoothingForOpenMesh(iterations, ref m, anchors, 1e-3);
+            Vector3d[] parVectors, perpVectors;
+            Point3d[] midPoints;
+            Processing.EdgeVectors(m, out midPoints, out parVectors, out perpVectors);
 
-            DA.SetData(0, m);
+            DA.SetDataList(0, midPoints);
+            DA.SetDataList(1, parVectors);
+            DA.SetDataList(2, perpVectors);
+        }
+
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>
@@ -71,7 +73,9 @@ namespace CGeomGH.Processing
         {
             get
             {
-                return Properties.Resources.Resources.LaplaceO;
+                // You can add image files to your project resources and access them like this:
+                //return Resources.IconForThisComponent;
+                return null;
             }
         }
 
@@ -82,7 +86,7 @@ namespace CGeomGH.Processing
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("ffd6bbda-4c77-4c4d-acb4-a035289388ca"); }
+            get { return new Guid("9a82e3c5-d823-403f-9fb7-c1bb8c1b1300"); }
         }
     }
 }

@@ -5,7 +5,7 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Processing
+namespace CGeomGH.ProcessingGH
 {
     public class LaplacianForCloseMeshGH : GH_Component
     {

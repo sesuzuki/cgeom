@@ -1,21 +1,27 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/Quantities/PerVertexPrincipalCurvaturesGH.cs">
-    <Files>
-      <File FileName="CGeomGH/Quantities/PerVertexPrincipalCurvaturesGH.cs" Line="73" Column="84" />
-    </Files>
-    <Pads>
-      <Pad Id="ProjectPad">
-        <State name="__root__">
-          <Node name="CGeom" expanded="True" selected="True" />
-        </State>
-      </Pad>
-    </Pads>
-  </MonoDevelop.Ide.Workbench>
-  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/Quantities/PerVertexPrincipalCurvaturesGH.cs">
+    <Files>
+      <File FileName="CGeomGH/Quantities/PerVertexPrincipalCurvaturesGH.cs" Line="37" Column="62" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="CGeom" expanded="True">
+            <Node name="CGeomGH" expanded="True">
+              <Node name="Quantities" expanded="True">
+                <Node name="PerVertexPrincipalCurvaturesGH.cs" selected="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MultiItemStartupConfigurations />
 </Properties>

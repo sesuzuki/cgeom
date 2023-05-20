@@ -37,4 +37,8 @@ namespace CGeom
     CGEOM_QUANT_API void cgeomLaplacianSmoothingForCloseMesh(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double smoothing, int numIterations, size_t * outCoordsCount, double **outCoords);
 
     CGEOM_QUANT_API void cgeomBarycenters(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t * outCoordsCount, double **outCoords);
+
+    CGEOM_QUANT_API int cgeomExactDiscreteGeodesicDistances(const int numVertices, const int numFaces, const int numSourceVertices, const int numSourceFaces, const int numTargetVertices, const int numTargetFaces, double *inCoords, int *inFaces, int *inSourceVertices, int *inSourceFaces, int *inTargetVertices, int *inTargetFaces, size_t *outDistancesCount, double **outDistances, const char **errorMessage);
+
+    CGEOM_QUANT_API int cgeomHeatGeodesics(const int numVertices, const int numFaces, double *inCoords, int *inFaces, const double t, const int inSourceVertex, const bool useIntrinsicDelaunay, size_t *outCount, double **outDistances, const char **errorMessage);
 }

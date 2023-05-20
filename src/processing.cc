@@ -20,6 +20,16 @@
 #include <igl/copyleft/comiso/frame_field.h>
 #include <sstream>
 #include <qex.h>
+#include <igl/cr_vector_laplacian.h>
+#include <igl/cr_vector_mass.h>
+#include <igl/crouzeix_raviart_cotmatrix.h>
+#include <igl/crouzeix_raviart_massmatrix.h>
+#include <igl/edge_midpoints.h>
+#include <igl/edge_vectors.h>
+#include <igl/average_from_edges_onto_vertices.h>
+#include <igl/min_quad_with_fixed.h>
+#include <igl/heat_geodesics.h>
+
 
 extern "C"
 {
@@ -275,5 +285,136 @@ namespace CGeom
         X1.setZero();
         ang.setZero();
         outX1.setZero();
+    }
+
+    CGEOM_PARAM_API int cgeomParallelTransport(const int numVertices, const int numFaces, double *inCoords, int *inFaces, const int inSourceVertex, const double initialPara, const double initialPerp, size_t *outCount, double **outCoords, double **outVecCoords, const char **errorMessage)
+    {
+        try{
+            typedef Eigen::SparseMatrix<double> SparseMat;
+            typedef Eigen::Matrix<double, 1, 1> Vector1d;
+            typedef Eigen::Matrix<int, 1, 1> Vector1i;
+
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+
+            //Compute vector Laplacian and mass matrix
+            Eigen::MatrixXi E, oE;//Compute Laplacian and mass matrix
+            SparseMat vecL, vecM;
+            igl::cr_vector_mass(V, F, E, oE, vecM);
+            igl::cr_vector_laplacian(V, F, E, oE, vecL);
+            const int m = vecL.rows()/2; //The number of edges in the mesh
+
+            //Convert the E / oE matrix format to list of edges / EMAP format required by the functions constructing scalar Crouzeix-Raviart functions
+            Eigen::MatrixXi Elist(m,2), EMAP(3*F.rows(),1);
+            for(int i=0; i<F.rows(); ++i) {
+                for(int j=0; j<3; ++j) {
+                const int e = E(i,j);
+                EMAP(i+j*F.rows()) = e;
+                if(oE(i,j)>0) {
+                    Elist.row(e) << F(i, (j+1)%3), F(i, (j+2)%3);
+                }
+                }
+            }
+            SparseMat scalarL, scalarM;
+            igl::crouzeix_raviart_massmatrix(V, F, Elist, EMAP, scalarM);
+            igl::crouzeix_raviart_cotmatrix(V, F, Elist, EMAP, scalarL);
+
+            //Compute edge midpoints & edge vectors
+            Eigen::MatrixXd edgeMps, parVec, perpVec;
+            igl::edge_midpoints(V, F, E, oE, edgeMps);
+            igl::edge_vectors(V, F, E, oE, parVec, perpVec);
+
+            //Perform the vector heat method
+            // const double initialPara=0.95, initialPerp=0.08;
+            const double t = 0.01;
+
+            SparseMat Aeq;
+            Eigen::VectorXd Beq;
+            Eigen::VectorXi known = Eigen::Vector2i(inSourceVertex, inSourceVertex+m);
+            Eigen::VectorXd knownVals = Eigen::Vector2d(initialPara, initialPerp);
+            Eigen::VectorXd Y0 = Eigen::VectorXd::Zero(2*m), Yt;
+            Y0(inSourceVertex) = initialPara; 
+            Y0(inSourceVertex+m) = initialPerp;
+            igl::min_quad_with_fixed(SparseMat(vecM+t*vecL), Eigen::VectorXd(-vecM*Y0), known, knownVals, Aeq, Beq, false, Yt);
+
+            Eigen::VectorXd u0 = Eigen::VectorXd::Zero(m), ut;
+            u0(inSourceVertex) = sqrt(initialPara*initialPara + initialPerp*initialPerp);
+            Eigen::VectorXi knownScal = Vector1i(inSourceVertex);
+            Eigen::VectorXd knownScalVals = Vector1d(u0(inSourceVertex));
+            igl::min_quad_with_fixed(SparseMat(scalarM+t*scalarL), Eigen::VectorXd(-scalarM*u0), knownScal, knownScalVals, Aeq, Beq, false, ut);
+
+            Eigen::VectorXd phi0 = Eigen::VectorXd::Zero(m), phit;
+            phi0(inSourceVertex) = 1;
+            Eigen::VectorXd knownScalValsPhi = Vector1d(1);
+            igl::min_quad_with_fixed(SparseMat(scalarM+t*scalarL), Eigen::VectorXd(-scalarM*phi0), knownScal, knownScalValsPhi, Aeq, Beq, false, phit);
+
+            Eigen::ArrayXd Xtfactor = ut.array() /
+            (phit.array() * (Yt.array().segment(0,m)*Yt.array().segment(0,m)
+                            + Yt.array().segment(m,m)*Yt.array().segment(m,m)).sqrt());
+            Eigen::VectorXd Xt(2*m);
+            Xt.segment(0,m) = Xtfactor * Yt.segment(0,m).array();
+            Xt.segment(m,m) = Xtfactor * Yt.segment(m,m).array();
+
+            //Compute scalar heat colors
+            // igl::HeatGeodesicsData<double> hgData;
+            // igl::heat_geodesics_precompute(V, F, hgData);
+            // Eigen::VectorXd heatColor;
+            // Eigen::VectorXi gamma = Elist.row(inSourceVertex);
+            // igl::heat_geodesics_solve(hgData, gamma, heatColor);
+
+
+            //Convert vector field for plotting
+            Eigen::MatrixXd vecs(m, 3);
+            for(int i=0; i<edgeMps.rows(); ++i) {
+                vecs.row(i) = Xt(i)*parVec.row(i) + Xt(i+edgeMps.rows())*perpVec.row(i);
+            }
+
+            cgeomParseMatrixXd(vecs, outVecCoords, outCount);
+            cgeomParseMatrixXd(edgeMps, outCoords, outCount);
+
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
+    }
+
+    CGEOM_PARAM_API int cgeomEdgeVectors(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outCount, double **outEdgeMidCoords, double **outParCoords, double **outPerpCoords, const char **errorMessage){
+        try{
+            typedef Eigen::SparseMatrix<double> SparseMat;
+            typedef Eigen::Matrix<double, 1, 1> Vector1d;
+            typedef Eigen::Matrix<int, 1, 1> Vector1i;
+
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+
+            //Compute vector Laplacian and mass matrix
+            Eigen::MatrixXi E, oE;//Compute Laplacian and mass matrix
+            SparseMat vecL, vecM;
+            igl::cr_vector_mass(V, F, E, oE, vecM);
+            igl::cr_vector_laplacian(V, F, E, oE, vecL);
+
+            //Compute edge midpoints & edge vectors
+            Eigen::MatrixXd edgeMps, parVec, perpVec;
+            igl::edge_midpoints(V, F, E, oE, edgeMps);
+            igl::edge_vectors(V, F, E, oE, parVec, perpVec);
+
+            cgeomParseMatrixXd(edgeMps, outEdgeMidCoords, outCount);
+            cgeomParseMatrixXd(parVec, outParCoords, outCount);
+            cgeomParseMatrixXd(perpVec, outPerpCoords, outCount);
+
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
     }
 }

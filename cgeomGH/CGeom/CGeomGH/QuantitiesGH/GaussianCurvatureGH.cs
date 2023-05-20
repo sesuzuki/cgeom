@@ -17,7 +17,7 @@ namespace CGeomGH.Quantities
         /// new tabs/panels will automatically be created.
         /// </summary>
         public GaussianCurvatureGH()
-          : base("GaussianCurvature", "GaussCurv",
+          : base("GaussianCurvature", "Gauss",
             "Compute the Gaussian curvature of a given mesh.",
             "CGeom", "Quantities")
         {

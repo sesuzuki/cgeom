@@ -59,6 +59,14 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomLocalBasis")]
             internal static extern void CgeomLocalBasis(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outCount, out IntPtr outX1Coords, out IntPtr outX2Coords, out IntPtr outX3Coords);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomExactDiscreteGeodesicDistances")]
+            internal static extern int CgeomExactDiscreteGeodesicDistances(int numVertices, int numFaces, int numSourceVertices, int numSourceFaces, int numTargetVertices, int numTargetFaces, [In] double[] inCoords, [In] int[] inFaces, [In] int[] inSourceVertices, [In] int[] inSourceFaces, [In] int[] inTargetVertices, [In] int[] inTargetFaces, out int outDistancesCount, out IntPtr outDistances, out IntPtr error);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomHeatGeodesics")]
+            internal static extern int CgeomHeatGeodesics(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, double t, int inSourceVertex, bool useIntrinsicDelaunay, out int outDistancesCount, out IntPtr outDistances, out IntPtr error);
         }
     }
 }

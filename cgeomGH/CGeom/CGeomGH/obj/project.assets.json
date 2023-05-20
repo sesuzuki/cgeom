@@ -8,11 +8,17 @@
           "RhinoCommon": "[7.0.20314.3001]"
         },
         "compile": {
-          "lib/net45/GH_IO.dll": {},
-          "lib/net45/Grasshopper.dll": {}
+          "lib/net45/GH_IO.dll": {
+            "related": ".XML"
+          },
+          "lib/net45/Grasshopper.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/net45/_._": {
+            "related": ".XML"
+          }
         },
         "build": {
           "build/Grasshopper.targets": {}
@@ -21,12 +27,18 @@
       "RhinoCommon/7.0.20314.3001": {
         "type": "package",
         "compile": {
-          "lib/net45/Eto.dll": {},
+          "lib/net45/Eto.dll": {
+            "related": ".xml"
+          },
           "lib/net45/Rhino.UI.dll": {},
-          "lib/net45/RhinoCommon.dll": {}
+          "lib/net45/RhinoCommon.dll": {
+            "related": ".XML"
+          }
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/net45/_._": {
+            "related": ".xml"
+          }
         },
         "build": {
           "build/RhinoCommon.targets": {}
@@ -139,7 +151,7 @@
             "version": "[7.0.20314.3001, )"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/5.0.405/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/Users/suzuki/Library/Caches/VisualStudio/17.0/MSBuild/26438_3/RuntimeIdentifierGraph.json"
       }
     }
   }

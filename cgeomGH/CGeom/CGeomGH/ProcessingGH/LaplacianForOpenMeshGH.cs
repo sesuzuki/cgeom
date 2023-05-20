@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using CGeom.Tools;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using CGeom.Tools;
 
-namespace CGeomGH.Processing
+namespace CGeomGH.ProcessingGH
 {
-    public class RotateVectorsGH : GH_Component
+    public class LaplacianForOpenMeshGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -17,9 +16,9 @@ namespace CGeomGH.Processing
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public RotateVectorsGH()
-          : base("RotateVectors", "RotateVectors",
-            "Rotate vectors with respect to reference planes.",
+        public LaplacianForOpenMeshGH()
+          : base("LaplacianOpenMesh", "LaplacianOpenMesh",
+            "Apply a Laplacian smoothing to a given open triangular mesh.",
             "CGeom", "Processing")
         {
         }
@@ -29,9 +28,10 @@ namespace CGeomGH.Processing
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddVectorParameter("Vector", "Vec", "Vectors to rotate.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Angle", "Ang", "Rotation angle (in degrees).", GH_ParamAccess.list);
-            pManager.AddPlaneParameter("Plane", "Pl", "Reference planes to use for rotation.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddPointParameter("Anchors", "Anchors", "Location of vertices to be fixed during smoothing.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Tolerance", "Tolerance", "Threshold distance for searching anchor vertices.", GH_ParamAccess.item, 1e-3);
+            pManager.AddIntegerParameter("Iterations", "Iterations", "Number of iterations.", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace CGeomGH.Processing
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddVectorParameter("RVector", "RVec", "Rotated vector.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Mesh", "M", "Resulting mesh.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -49,34 +49,18 @@ namespace CGeomGH.Processing
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            List<Vector3d> vec = new List<Vector3d>();
-            List<Plane> planes = new List<Plane>();
-            List<double> angles = new List<double>();
-            DA.GetDataList(0, vec);
-            DA.GetDataList(1, angles);
-            DA.GetDataList(2, planes);
+            Mesh m = null;
+            int iterations = 1;
+            double tol = 1e-3;
+            List<Point3d> anchors = new List<Point3d>();
+            DA.GetData(0, ref m);
+            DA.GetDataList(1, anchors);
+            DA.GetData(2, ref tol);
+            DA.GetData(3, ref iterations);
 
-            if (vec.Count != planes.Count) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The number of vectors doesn't match with the number of reference planes.");
+            CGeom.Tools.Processing.LaplacianSmoothingForOpenMesh(iterations, ref m, anchors, 1e-3);
 
-            int numPlanes = planes.Count;
-            Vector3d[] B1 = new Vector3d[numPlanes];
-            Vector3d[] B2 = new Vector3d[numPlanes];
-            double[] inAngles = new double[numPlanes];
-            
-            for (int i=0; i<numPlanes; i++)
-            {
-                var pl = planes[i];
-                B1[i] = pl.XAxis;
-                B2[i] = pl.YAxis;
-
-                if (angles.Count == numPlanes) inAngles[i] = angles[i] * Math.PI / 180;
-                else inAngles[i] = angles[0] * Math.PI/180;
-            }
-
-            Vector3d[] X2;
-            CGeom.Tools.Processing.RotateVectors(vec, inAngles, B1, B2, out X2);
-
-            DA.SetDataList(0, X2);
+            DA.SetData(0, m);
         }
 
         /// <summary>
@@ -87,7 +71,7 @@ namespace CGeomGH.Processing
         {
             get
             {
-                return Properties.Resources.Resources.RotateVectors;
+                return Properties.Resources.Resources.LaplaceO;
             }
         }
 
@@ -98,7 +82,7 @@ namespace CGeomGH.Processing
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("d7c6d76b-d391-46dc-b3db-53395a3c9c1f"); }
+            get { return new Guid("ffd6bbda-4c77-4c4d-acb4-a035289388ca"); }
         }
     }
 }

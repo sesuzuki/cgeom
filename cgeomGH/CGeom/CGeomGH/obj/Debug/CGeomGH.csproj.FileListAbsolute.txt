@@ -20,7 +20,6 @@
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.csproj.AssemblyReference.cache
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.Properties.Resources.Resources.resources
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.csproj.GenerateResource.cache
-/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.GeneratedMSBuildEditorConfig.editorconfig
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.AssemblyInfoInputs.cache
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.AssemblyInfo.cs
 /Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/Debug/CGeomGH.csproj.CoreCompileInputs.cache

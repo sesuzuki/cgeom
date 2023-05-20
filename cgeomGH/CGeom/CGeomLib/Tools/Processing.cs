@@ -4,8 +4,6 @@ using Rhino.Geometry;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using CGeom.Tools;
-using static CGeom.Tools.Utils;
 
 namespace CGeom.Tools
 {
@@ -41,7 +39,7 @@ namespace CGeom.Tools
             Kernel.DiscreteQuantities.CgeomLaplacianSmoothingForOpenMesh(numVertices, numFaces, inBoundaries.Count, coords, faces, inBoundaries.ToArray(), inInteriors, numIterations, out outCoordsCount, out outCoords);
 
             // Parse new vertex positions
-            ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
+            Utils.ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
         }
 
         public static void LaplacianSmoothingForCloseMesh(int numIterations, ref Mesh mesh, double smoothing, double tolerance = 1e-3)
@@ -59,7 +57,7 @@ namespace CGeom.Tools
             Kernel.DiscreteQuantities.CgeomLaplacianSmoothingForCloseMesh(numVertices, numFaces, coords, faces, smoothing, numIterations, out outCoordsCount, out outCoords);
 
             // Parse new vertex positions
-            ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
+            Utils.ParsePointerToMeshVertices(outCoords, outCoordsCount, ref mesh);
         }
 
         public static void RotateVectors(IEnumerable<Vector3d> X1, IEnumerable<double> angles, IEnumerable<Vector3d> B1, IEnumerable<Vector3d> B2, out Vector3d[] X2)
@@ -76,6 +74,53 @@ namespace CGeom.Tools
             Kernel.Processing.CgeomRotateVectors(numVectors, inX1Coords, inB1Coords, inB2Coords, inAngle, out outCount, out ptrX1);
 
             X2 = Utils.ParsePointerToVectorArr(ptrX1, outCount);
+        }
+
+        public static void ParallelTransport(Mesh mesh, int sourceIndex, double parallelParam, double perpendicualrParam, out Point3d[] points, out Vector3d[] vectors)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            int outCount;
+            IntPtr outVecCoords, outCoords, outErrorMsg;
+            int errorCode = Kernel.Processing.CgeomParallelTransport(numVertices, numFaces, coords, faces, sourceIndex, parallelParam, perpendicualrParam, out outCount, out outCoords, out outVecCoords, out outErrorMsg);
+
+            if (errorCode == 0)
+            {
+                vectors = Utils.ParsePointerToVectorArr(outVecCoords, outCount);
+                points = Utils.ParsePointerToPointArr(outCoords, outCount);
+            }
+            else
+            {
+                string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
+                throw new Exception(errorMsg);
+            }
+        }
+
+        public static void EdgeVectors(Mesh mesh, out Point3d[] midPoints, out Vector3d[] parallelVectors, out Vector3d[] perpendicularVectors)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            int outCount;
+            IntPtr outEdgeMidCoords, outParCoords, outPerpCoords,outErrorMsg;
+            int errorCode = Kernel.Processing.CgeomEdgeVectors(numVertices, numFaces, coords, faces, out outCount, out outEdgeMidCoords, out outParCoords, out outPerpCoords, out outErrorMsg);
+
+            if (errorCode == 0)
+            {
+                midPoints = Utils.ParsePointerToPointArr(outEdgeMidCoords, outCount);
+                parallelVectors = Utils.ParsePointerToVectorArr(outParCoords, outCount);
+                perpendicularVectors = Utils.ParsePointerToVectorArr(outPerpCoords, outCount);
+            }
+            else
+            {
+                string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
+                throw new Exception(errorMsg);
+            }
         }
     }
 }

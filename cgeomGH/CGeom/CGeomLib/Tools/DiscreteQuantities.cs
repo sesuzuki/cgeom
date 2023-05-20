@@ -248,5 +248,98 @@ namespace CGeom.Tools
             B2 = Utils.ParsePointerToVectorArr(ptrX2, outCount);
             B3 = Utils.ParsePointerToVectorArr(ptrX3, outCount);
         }
+
+        public static double[] ExactGeodesicDistances(Mesh mesh, List<Point3d> sourcePoints, List<Point3d> targetPoints, bool useFaces, double maximumDistance=0.1)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            // Find mesh closest source points
+            HashSet<int> inSourceVertices = new HashSet<int>();
+            HashSet<int> inSourceFaces = new HashSet<int>();
+            for (int i=0; i<sourcePoints.Count; i++)
+            {
+                var cmp = mesh.ClosestMeshPoint(sourcePoints[i], maximumDistance);
+                inSourceVertices.Add(cmp.ComponentIndex.Index);
+                inSourceFaces.Add(cmp.FaceIndex);
+            }
+
+            // Find mesh closest target points
+            HashSet<int> inTargetVertices = new HashSet<int>();
+            HashSet<int> inTargetFaces = new HashSet<int>();
+            for (int i = 0; i < targetPoints.Count; i++)
+            {
+                var cmp = mesh.ClosestMeshPoint(targetPoints[i], maximumDistance);
+                inTargetVertices.Add(cmp.ComponentIndex.Index);
+                inTargetFaces.Add(cmp.FaceIndex);
+            }
+
+            int[] sourceVertices, targetVertices, sourceFaces, targetFaces;
+            if (useFaces)
+            {
+                sourceVertices = inSourceVertices.ToArray();
+                targetVertices = inTargetVertices.ToArray();
+
+                sourceFaces = new int[0];
+                targetFaces = new int[0];
+            }
+            else
+            {
+                sourceVertices = new int[0];
+                targetVertices = new int[0];
+
+                sourceFaces = inSourceFaces.ToArray();
+                targetFaces = inTargetFaces.ToArray();
+            }
+
+            int outDistancesCount;
+            IntPtr outDistances, outErrorMsg;
+            int errorCode = Kernel.DiscreteQuantities.CgeomExactDiscreteGeodesicDistances(numVertices, numFaces, sourceVertices.Length, sourceFaces.Length, targetVertices.Length, targetFaces.Length, coords, faces, sourceVertices, sourceFaces, targetVertices, targetFaces, out outDistancesCount, out outDistances, out outErrorMsg);
+
+            if (errorCode == 0)
+            {
+                return Utils.ParsePointerToDoubleArr(outDistances, outDistancesCount);
+            }
+            else
+            {
+                string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
+                throw new Exception(errorMsg);
+            }
+        }
+
+        /// <summary>
+        /// Compute fast approximate geodesic distances using precomputed data from a set of selected source vertices
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="t"> t “heat” parameter (smaller → more accurate, less stable) </param>
+        /// <returns></returns>
+        public static double[] HeatGeodesics(Mesh mesh, double t, Point3d sourcePoint, bool useIntrinsicDelaunay=true, double maximumDistance = 0.1)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            var cmp = mesh.ClosestMeshPoint(sourcePoint, maximumDistance);
+            if (cmp == null) throw new Exception("Invalid source point.");
+
+            int sourceVertex = cmp.ComponentIndex.Index;
+
+            int outDistancesCount;
+            IntPtr outDistances, outErrorMsg;
+            int errorCode = Kernel.DiscreteQuantities.CgeomHeatGeodesics(numVertices, numFaces, coords, faces, t, sourceVertex, useIntrinsicDelaunay, out outDistancesCount, out outDistances, out outErrorMsg);
+
+            if (errorCode == 0)
+            {
+                return Utils.ParsePointerToDoubleArr(outDistances, outDistancesCount);
+            }
+            else
+            {
+                string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
+                throw new Exception(errorMsg);
+            }
+        }
     }
 }

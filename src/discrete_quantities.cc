@@ -16,6 +16,8 @@
 #include <igl/slice_into.h>
 #include <igl/min_quad_with_fixed.h>
 #include <igl/local_basis.h>
+#include <igl/heat_geodesics.h>
+#include <igl/exact_geodesic.h>
 
 extern "C"
 {
@@ -519,5 +521,83 @@ namespace CGeom
         // Release Eigen Matrix Memory
         F.setZero();
         V.setZero();
+    }
+
+    CGEOM_QUANT_API int cgeomExactDiscreteGeodesicDistances(const int numVertices, const int numFaces, const int numSourceVertices, const int numSourceFaces, const int numTargetVertices, const int numTargetFaces, double *inCoords, int *inFaces, int *inSourceVertices, int *inSourceFaces, int *inTargetVertices, int *inTargetFaces, size_t *outCount, double **outDistances, const char **errorMessage)
+    {
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+            
+            Eigen::VectorXi VS,FS,VT,FT;
+            if(numSourceVertices!=0){
+                VS = Eigen::Map<Eigen::VectorXi>(inSourceVertices, numSourceVertices, 1);
+                VT = Eigen::Map<Eigen::VectorXi>(inTargetVertices, numTargetVertices, 1);
+            }
+            if(numSourceFaces!=0){
+                FS = Eigen::Map<Eigen::VectorXi>(inSourceFaces, numSourceFaces, 1);
+                FT = Eigen::Map<Eigen::VectorXi>(inTargetFaces, numTargetFaces, 1);
+            }
+
+            Eigen::VectorXd D;
+            igl::exact_geodesic(V,F,VS,FS,VT,FT,D);
+
+            // Parse data
+            cgeomParseMatrixXd(D, outDistances, outCount);
+
+            V.setZero();
+            F.setZero();
+            VS.setZero();
+            FS.setZero();
+            VT.setZero();
+            FT.setZero();
+            D.setZero();
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
+    }
+
+    CGEOM_QUANT_API int cgeomHeatGeodesics(const int numVertices, const int numFaces, double *inCoords, int *inFaces, const double t, const int inSourceVertex, const bool useIntrinsicDelaunay, size_t *outCount, double **outDistances, const char **errorMessage)//
+    {
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+
+            // Precomputation
+            igl::HeatGeodesicsData<double> data;
+            if(useIntrinsicDelaunay) data.use_intrinsic_delaunay = true;
+            else data.use_intrinsic_delaunay = false;
+            double t = std::pow(igl::avg_edge_length(V,F),2);
+            if(!igl::heat_geodesics_precompute(V,F,t,data))
+            {
+                *errorMessage = "Error: heat_geodesics_precompute failed";
+                return 1;
+            }
+
+            Eigen::VectorXd D;
+            igl::heat_geodesics_solve(data,(Eigen::VectorXi(1,1)<<inSourceVertex).finished(),D);
+
+            // Parse data
+            cgeomParseMatrixXd(D, outDistances, outCount);
+
+            V.setZero();
+            F.setZero();
+            D.setZero();
+
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
     }
 }

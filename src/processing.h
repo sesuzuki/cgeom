@@ -36,4 +36,8 @@ namespace CGeom
     CGEOM_PARAM_API void cgeomPlanarization(const int inVertexCount, const int inQuadsCount, double *inCoords, int *inQuads, const int iterations, const double threshold, size_t *outVertexCount, size_t *outPlanarityCount, double **outCoords, double **outPlanarity);
 
     CGEOM_PARAM_API void cgeomRotateVectors(const int numVectors, double *inX1Coords, double *inB1Coords, double *inB2Coords, double *inAngle, size_t *outCount, double **outX1Coords);
+
+    CGEOM_PARAM_API int cgeomParallelTransport(const int numVertices, const int numFaces, double *inCoords, int *inFaces, const int inSourceVertex, const double initialPara, const double initialPerp, size_t *outCount, double **outCoords, double **outVecCoords, const char **errorMessage);
+
+    CGEOM_PARAM_API int cgeomEdgeVectors(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outCount, double **outEdgeMidCoords, double **outParCoords, double **outPerpCoords, const char **errorMessage);
 }
