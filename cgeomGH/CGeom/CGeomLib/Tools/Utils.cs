@@ -10,12 +10,20 @@ namespace CGeom.Tools
     {
         public enum StorageOrder {RowMajor=0, ColumnMajor=1};
 
-        public static void ParseTriangleRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
+        public static void ParseTriangleRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces, bool columnMajor=true)
         {
             if (mesh == null) throw new ArgumentException("Invalid mesh");
 
-            coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
-            faces = Utils.FlattenTriaFaceData(mesh, Utils.StorageOrder.ColumnMajor);
+            if (columnMajor)
+            {
+                coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
+                faces = Utils.FlattenTriaFaceData(mesh, Utils.StorageOrder.ColumnMajor);
+            }
+            else
+            {
+                coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.RowMajor);
+                faces = Utils.FlattenTriaFaceData(mesh, Utils.StorageOrder.RowMajor);
+            }
 
             numVertices = coords.Count() / 3;
             numFaces = faces.Count() / 3;

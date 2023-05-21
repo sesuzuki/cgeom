@@ -26,14 +26,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="DiscreteQuantities\" />
-    <None Remove="Parameterization\" />
     <None Remove="Properties\" />
     <None Remove="Properties\Resources\" />
     <None Remove="Properties\Resources\deconstructnrosy.png" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Quantities\" />
-    <Folder Include="Parameterization\" />
     <Folder Include="Properties\" />
     <Folder Include="Properties\Resources\" />
   </ItemGroup>

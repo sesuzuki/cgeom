@@ -29,6 +29,7 @@
 #include <igl/average_from_edges_onto_vertices.h>
 #include <igl/min_quad_with_fixed.h>
 #include <igl/heat_geodesics.h>
+#include <igl/remesh_along_isoline.h>
 
 
 extern "C"
@@ -407,6 +408,61 @@ namespace CGeom
             cgeomParseMatrixXd(edgeMps, outEdgeMidCoords, outCount);
             cgeomParseMatrixXd(parVec, outParCoords, outCount);
             cgeomParseMatrixXd(perpVec, outPerpCoords, outCount);
+
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
+    }
+
+    CGEOM_PARAM_API int cgeomRemeshAlongIsoline(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double *inScalarField, double inIsoValue, size_t *outVertexCount, size_t *outFaceCount, double **outCoords, int **outFaces, const char **errorMessage){
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+            Eigen::VectorXd S = Eigen::Map<Eigen::VectorXd>(inScalarField, numVertices, 1);
+
+            // Output mesh
+            Eigen::MatrixXd U;
+            Eigen::MatrixXi G;
+            Eigen::VectorXd SU;
+            Eigen::VectorXd J;
+            Eigen::SparseMatrix<double> BC;
+            Eigen::VectorXi L;
+
+            igl::remesh_along_isoline(V, F, S, inIsoValue, U, G, SU, J, BC, L);
+
+            // Parse quad mesh vertex data
+            *outVertexCount = U.size();
+            auto sV = *outVertexCount * sizeof(double);
+            *outCoords = static_cast<double *>(malloc(sV));
+
+            std::vector<double> coords;
+            for(int i=0; i<U.rows(); i++){
+                auto vertex = U.row(i);
+                coords.push_back(vertex[0]);
+                coords.push_back(vertex[1]);
+                coords.push_back(vertex[2]);
+            }
+            std::memcpy(*outCoords, coords.data(), sV);
+
+            // Parse quad mesh face data
+            *outFaceCount = G.size();
+            auto sF = *outFaceCount * sizeof(int);
+            *outFaces = static_cast<int *>(malloc(sF));
+
+            std::vector<int> faces;
+            for(int i=0; i<G.rows(); i++){
+                auto f = G.row(i);
+                faces.push_back(f[0]);
+                faces.push_back(f[1]);
+                faces.push_back(f[2]);
+            }
+            std::memcpy(*outFaces, faces.data(), sF);
 
             *errorMessage = "Success";
             return 0;

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using CGeom.Tools;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using CGeom.Tools;
 
-namespace CGeomGH.Parameterization
+namespace CGeomGH.QuantitiesGH
 {
-    public class QuadMeshExtractionGH : GH_Component
+    public class GeodesicPathsGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -17,10 +16,10 @@ namespace CGeomGH.Parameterization
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public QuadMeshExtractionGH()
-          : base("QuadMesh", "QMesh",
-            "Quad mesh extraction from a given parameterization.",
-            "CGeom", "Parameterization")
+        public GeodesicPathsGH()
+          : base("GeodesicPaths", "GeoPaths",
+                 "Compute geodesic paths from a set of source and target points.",
+                 "CGeom", "Quantities")
         {
         }
 
@@ -30,8 +29,8 @@ namespace CGeomGH.Parameterization
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddVectorParameter("UV", "UV", "UV parameterization", GH_ParamAccess.list);
-            pManager.AddMeshFaceParameter("FUV", "FUV", "UV indexes per face", GH_ParamAccess.list);
+            pManager.AddPointParameter("SourcePoints", "Source", "Source points. ", GH_ParamAccess.list);
+            pManager.AddPointParameter("TargetPoints", "Target", "Target points. ", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -39,7 +38,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("QuadMesh", "QMesh", "Quadrangulated mesh", GH_ParamAccess.item);
+            pManager.AddCurveParameter("GeodesicPaths", "GeoPaths", "Geodesic paths.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -50,15 +49,20 @@ namespace CGeomGH.Parameterization
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<Vector3d> uv = new List<Vector3d>();
-            List<MeshFace> fuv = new List<MeshFace>();
+            List<Point3d> sourcePoints = new List<Point3d>();
+            List<Point3d> targetPoints = new List<Point3d>();
             DA.GetData(0, ref m);
-            DA.GetDataList(1, uv);
-            DA.GetDataList(2, fuv);
+            DA.GetDataList(1, sourcePoints);
+            DA.GetDataList(2, targetPoints);
 
-            Mesh qm = Parameterizations.QuadMeshExtraction(m, uv, fuv);
+            List<Polyline> gp = DiscreteQuantities.ExactGeodesicPaths(m, sourcePoints, targetPoints);
 
-            DA.SetData(0, qm);
+            DA.SetDataList(0, gp);
+        }
+
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.tertiary; }
         }
 
         /// <summary>
@@ -69,7 +73,9 @@ namespace CGeomGH.Parameterization
         {
             get
             {
-                return Properties.Resources.Resources.QuadExtraction;
+                // You can add image files to your project resources and access them like this:
+                //return Resources.IconForThisComponent;
+                return null;
             }
         }
 
@@ -80,7 +86,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("cfe84ada-7bb8-448b-a8f5-d5385947d2ad"); }
+            get { return new Guid("39049f91-1a23-4fce-a9e8-93ab9a455913"); }
         }
     }
 }

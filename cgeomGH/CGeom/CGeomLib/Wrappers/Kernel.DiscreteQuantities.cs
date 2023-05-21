@@ -67,6 +67,11 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomHeatGeodesics")]
             internal static extern int CgeomHeatGeodesics(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, double t, int inSourceVertex, bool useIntrinsicDelaunay, out int outDistancesCount, out IntPtr outDistances, out IntPtr error);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomGeodesicPaths")]
+            internal static extern int CgeomGeodesicPaths(int numVertices, int numFaces, int numSourceVertices, int numTargetVertices, [In] double[] inCoords, [In] int[] inFaces, [In] int[] inSourceVertices, [In] int[] inTargetVertices, out int outCoordsCount, out IntPtr outCoords, out IntPtr outCoordsSize, out IntPtr error);
+
         }
     }
 }

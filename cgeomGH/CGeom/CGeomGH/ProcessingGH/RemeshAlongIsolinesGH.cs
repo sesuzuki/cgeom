@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Resources;
 using CGeom.Tools;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Parameterization
+namespace CGeomGH.ProcessingGH
 {
-    public class DeconstructNRosyGH : GH_Component
+    public class RemeshAlongIsolinesGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -17,10 +16,10 @@ namespace CGeomGH.Parameterization
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public DeconstructNRosyGH()
-          : base("Deconstruct NRosy", "DeNRosy",
-            "Extract the components of an N-Rosy field.",
-            "CGeom", "Parameterization")
+        public RemeshAlongIsolinesGH()
+          : base("RemeshAlongIsoline", "RemeshAlongIso",
+                "Remesh so that a given isovalue of the scalar field follows (new) edges of the output mesh.",
+                "CGeom", "Processing")
         {
         }
 
@@ -29,7 +28,9 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("N-Rosy", "N-Rosy", "N-Rosy field.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("ScalarField","sField","Scalar field as a list of doubles.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("IsoValue", "Isovalue", "IsoValue of the scalar field.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -37,11 +38,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Barycenter", "B", "Barycenters associated with the field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X1", "X1", "First representative vectors of the field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X2", "X2", "Second representative vectors of the field.", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("Singularities", "S", "Singularities of the field.", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Degree", "Degree", "Degree of the field.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("IsoMesh", "IsoMesh", "Mesh remeshed along isolines.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -51,15 +48,19 @@ namespace CGeomGH.Parameterization
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            NRosy rosy = new NRosy();
+            Mesh m = null;
+            List<double> scalarField = new List<double>();
+            double isoValue= 0;
+            DA.GetData(0, ref m);
+            DA.GetDataList(1, scalarField);
+            DA.GetData(2, ref isoValue);
 
-            DA.GetData(0, ref rosy);
+            if (scalarField.Count != m.Vertices.Count) throw new Exception("Invalid scalar field. The number of scalars doesn't match the number of vertices.");
+            if (!scalarField.Contains(isoValue)) throw new Exception("Invalid isoValue. The scalar field doesn't contain the given isoValue.");
 
-            DA.SetDataList(0, rosy.Barycenters);
-            DA.SetDataList(1, rosy.X1);
-            DA.SetDataList(2, rosy.X2);
-            DA.SetDataList(3, rosy.Singularities);
-            DA.SetData(4, rosy.Degree);
+            Mesh outMesh = Processing.RemeshAlongIsoline(m, scalarField.ToArray(), isoValue);
+
+            DA.SetData(0, outMesh);
         }
 
         /// <summary>
@@ -70,7 +71,9 @@ namespace CGeomGH.Parameterization
         {
             get
             {
-                return Properties.Resources.Resources.DeconstructNRosy;
+                // You can add image files to your project resources and access them like this:
+                //return Resources.IconForThisComponent;
+                return null;
             }
         }
 
@@ -81,7 +84,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("4fe1d1b6-9fe6-4d2c-a38c-853f445c2202"); }
+            get { return new Guid("6eb6a76f-8ca5-4727-bc20-d86c620f3c30"); }
         }
     }
 }

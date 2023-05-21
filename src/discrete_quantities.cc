@@ -18,6 +18,7 @@
 #include <igl/local_basis.h>
 #include <igl/heat_geodesics.h>
 #include <igl/exact_geodesic.h>
+//#include <igl/exact_geodesic.cpp>
 
 extern "C"
 {
@@ -590,6 +591,76 @@ namespace CGeom
             V.setZero();
             F.setZero();
             D.setZero();
+
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
+    }
+
+    CGEOM_QUANT_API int cgeomGeodesicPaths(const int numVertices, const int numFaces, const int numSourceVertices, const int numTargetVertices, double *inCoords, int *inFaces, int *inSourceVertices, int *inTargetVertices, size_t *outCount, double **outCoords, int **outCoordsSize, const char **errorMessage){
+        try{
+            // Build mesh
+            std::vector<double> points(numVertices * 3);
+            std::vector<size_t> faces(numFaces * 3);
+            for (int i = 0; i < numVertices; i++)
+            {
+                points[i*3] = inCoords[i * 3];
+                points[i*3+1] = inCoords[i * 3 + 1];
+                points[i*3+2] = inCoords[i * 3 + 2];
+            }
+            for (int i = 0; i < numFaces; i++)
+            {
+                faces[i*3] = inFaces[i * 3];
+                faces[i*3+1] = inFaces[i * 3 + 1];
+                faces[i*3+2] = inFaces[i * 3 + 2];
+            }
+
+            igl::geodesic::Mesh mesh;
+            mesh.initialize_mesh_data(points, faces);
+
+            // Build source/target
+            std::vector<igl::geodesic::SurfacePoint> sources;
+            sources.reserve(numSourceVertices);
+            for(int i = 0; i < numSourceVertices; i++)
+            {
+                sources.emplace_back(&mesh.vertices()[inSourceVertices[i]]);
+            }
+
+            std::vector<igl::geodesic::SurfacePoint> targets;
+            targets.reserve(numTargetVertices);
+            for(int i = 0;i < numTargetVertices; i++)
+            {
+                targets.emplace_back(&mesh.vertices()[inTargetVertices[i]]);
+            }
+
+            // Geodesic path
+            igl::geodesic::GeodesicAlgorithmExact geoBase(&mesh);
+
+            geoBase.propagate(sources);
+            std::vector<double> paths;
+            *outCoordsSize = new int[targets.size()];
+            for (int i = 0; i < targets.size(); i++)
+            {
+                std::vector<igl::geodesic::SurfacePoint> gp;
+                geoBase.trace_back(targets[i], gp);
+                *outCoordsSize[i] = static_cast<int>(gp.size());
+
+                for(int j=0; j<gp.size(); j++)
+                {
+                    igl::geodesic::SurfacePoint &s = gp[j];
+                    for(int k=0; k<3; k++) paths.push_back(s.xyz()[k]);
+                }
+            }
+
+            *outCount = paths.size();
+            auto sF = *outCount * sizeof(double);
+            *outCoords = static_cast<double *>(malloc(sF));
+            std::memcpy(*outCoords, paths.data(), sF);
 
             *errorMessage = "Success";
             return 0;

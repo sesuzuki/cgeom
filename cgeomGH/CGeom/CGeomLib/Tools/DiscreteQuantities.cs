@@ -341,5 +341,64 @@ namespace CGeom.Tools
                 throw new Exception(errorMsg);
             }
         }
+
+        public static List<Polyline> ExactGeodesicPaths(Mesh mesh, List<Point3d> sourcePoints, List<Point3d> targetPoints, double maximumDistance = 0.1)
+        {
+            int numVertices, numFaces;
+            double[] coords;
+            int[] faces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces, false);
+
+            // Find mesh closest source points
+            HashSet<int> inSourceVertices = new HashSet<int>();
+            for (int i = 0; i < sourcePoints.Count; i++)
+            {
+                inSourceVertices.Add(mesh.ClosestMeshPoint(sourcePoints[i], maximumDistance).ComponentIndex.Index);
+            }
+
+            // Find mesh closest target points
+            HashSet<int> inTargetVertices = new HashSet<int>();
+            for (int i = 0; i < targetPoints.Count; i++)
+            {
+                inTargetVertices.Add(mesh.ClosestMeshPoint(targetPoints[i], maximumDistance).ComponentIndex.Index);
+            }
+
+            int[] sourceVertices, targetVertices;
+            sourceVertices = inSourceVertices.ToArray();
+            targetVertices = inTargetVertices.ToArray();
+            int numSources = sourceVertices.Length;
+            int numTargets = targetVertices.Length;
+
+            int outCount;
+            IntPtr outCoords, outCoordsSize, outErrorMsg;
+            int errorCode = Kernel.DiscreteQuantities.CgeomGeodesicPaths(numVertices, numFaces, numSources, numTargets, coords, faces, sourceVertices, targetVertices, out outCount, out outCoords, out outCoordsSize, out outErrorMsg);
+
+            if (errorCode == 0)
+            {
+                Point3d[] pts = Utils.ParsePointerToPointArr(outCoords, outCount, Utils.StorageOrder.RowMajor);
+                int[] sizes = Utils.ParsePointerToIntArr(outCoordsSize, numTargets);
+
+                List<Polyline> paths = new List<Polyline>();
+                int idx = 0;
+                for (int i=0; i<numTargets; i++)
+                {
+                    int count = sizes[i];
+                    Point3d[] pp = new Point3d[count];
+                    for (int j=0; j<count; j++)
+                    {
+                        pp[j] = pts[idx + j];
+                    }
+                    paths.Add(new Polyline(pp));
+                    idx += count;
+                }
+
+                return paths;
+            }
+            else
+            {
+                string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
+                throw new Exception(errorMsg);
+            }
+        }
     }
 }

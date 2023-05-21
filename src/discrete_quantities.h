@@ -41,4 +41,6 @@ namespace CGeom
     CGEOM_QUANT_API int cgeomExactDiscreteGeodesicDistances(const int numVertices, const int numFaces, const int numSourceVertices, const int numSourceFaces, const int numTargetVertices, const int numTargetFaces, double *inCoords, int *inFaces, int *inSourceVertices, int *inSourceFaces, int *inTargetVertices, int *inTargetFaces, size_t *outDistancesCount, double **outDistances, const char **errorMessage);
 
     CGEOM_QUANT_API int cgeomHeatGeodesics(const int numVertices, const int numFaces, double *inCoords, int *inFaces, const double t, const int inSourceVertex, const bool useIntrinsicDelaunay, size_t *outCount, double **outDistances, const char **errorMessage);
+
+    CGEOM_QUANT_API int cgeomGeodesicPaths(const int numVertices, const int numFaces, const int numSourceVertices, const int numTargetVertices, double *inCoords, int *inFaces, int *inSourceVertices, int *inTargetVertices, size_t *outCount, double **outCoords, int **outCoordsSize, const char **errorMessage);
 }

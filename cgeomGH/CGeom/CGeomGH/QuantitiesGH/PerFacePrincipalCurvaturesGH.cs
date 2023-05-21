@@ -5,7 +5,7 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.Quantities
+namespace CGeomGH.QuantitiesGH
 {
     public class PerFacePrincipalCurvaturesGH : GH_Component
     {

@@ -49,6 +49,10 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomEdgeVectors")]
             internal static extern int CgeomEdgeVectors(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outCount, out IntPtr outEdgeMidCoords, out IntPtr outParCoords, out IntPtr outPerpCoords, out IntPtr error);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomRemeshAlongIsoline")]
+            internal static extern int CgeomRemeshAlongIsoline(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, [In] double[] inScalarField, double inIsoValue, out int outVertexCount, out int outFaceCount, out IntPtr outCoords, out IntPtr outFaces, out IntPtr error);
         }
     }
 }

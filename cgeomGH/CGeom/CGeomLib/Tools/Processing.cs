@@ -122,5 +122,38 @@ namespace CGeom.Tools
                 throw new Exception(errorMsg);
             }
         }
+
+        public static Mesh RemeshAlongIsoline(Mesh mesh, double[] scalarField, double isoValue)
+        {
+            // Parse mesh data
+            double[] coords;
+            int[] faces;
+            int numVertices, numFaces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            int outNumVertices, outNumFaces;
+            IntPtr outCoords, outFaces, outErrorMsg;
+            int errorCode = Kernel.Processing.CgeomRemeshAlongIsoline(numVertices, numFaces, coords, faces, scalarField, isoValue, out outNumVertices, out outNumFaces, out outCoords, out outFaces, out outErrorMsg);
+
+            if (errorCode == 0)
+            {
+                Point3d[] outV = Utils.ParsePointerToPointArr(outCoords, outNumVertices, Utils.StorageOrder.RowMajor);
+                MeshFace[] outF = Utils.ParsePointerToMeshFaceArr(outFaces, outNumFaces, Utils.StorageOrder.RowMajor);
+
+                Mesh outMesh = new Mesh();
+                outMesh.Vertices.AddVertices(outV);
+                outMesh.Faces.AddFaces(outF);
+                outMesh.Vertices.CombineIdentical(true, true);
+                outMesh.Faces.CullDegenerateFaces();
+                outMesh.Normals.ComputeNormals();
+
+                return outMesh;
+            }
+            else
+            {
+                string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
+                throw new Exception(errorMsg);
+            }
+        }
     }
 }

@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using CGeom.Tools;
+
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using CGeom.Tools;
 
-namespace CGeomGH.Parameterization
+namespace CGeomGH.ParameterizationGH
 {
-    public class NRosyGH : GH_Component
+    public class SeamlessIntegerGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,9 +17,9 @@ namespace CGeomGH.Parameterization
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public NRosyGH()
-          : base("NRosy", "NRosy",
-            "Create a N-rotationally Symmetric Tangent Field.",
+        public SeamlessIntegerGH()
+          : base("SIGParam", "SIGParam",
+            "Seamless-Integer-Grid Parameterization",
             "CGeom", "Parameterization")
         {
         }
@@ -29,10 +30,11 @@ namespace CGeomGH.Parameterization
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("b","b", "Sparse set of indices of constrained faces.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("bc1", "bc1", "First representative vector for constrained faces (one per face).", GH_ParamAccess.list);
-            pManager.AddVectorParameter("bc2", "bc2", "Second representative vector for constrained faces (one per face).", GH_ParamAccess.list);
-            pManager[3].Optional = true;
+            pManager.AddGenericParameter("NRosy", "NRosy", "NRosy field.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("GradSize","GradSize","Gradient size.", GH_ParamAccess.item,10);
+            pManager.AddNumberParameter("Stiffness", "Stiffness", "Stiffness", GH_ParamAccess.item,5.0);
+            pManager.AddBooleanParameter("Round", "Round", "Direct round", GH_ParamAccess.item, false);
+            pManager.AddIntegerParameter("Iterations", "Iter", "Number of iterations", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -40,7 +42,8 @@ namespace CGeomGH.Parameterization
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("N-Rosy", "N-Rosy", "N-rotationally Symmetric Tangent Field.", GH_ParamAccess.list);
+            pManager.AddVectorParameter("UV", "UV", "UV parameterization.", GH_ParamAccess.list);
+            pManager.AddMeshFaceParameter("FUV", "FUV", "Indexes of UV parameters per mesh face.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -51,22 +54,24 @@ namespace CGeomGH.Parameterization
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<int> B = new List<int>();
-            List<Vector3d> FF1 = new List<Vector3d>();
-            List<Vector3d> FF2 = new List<Vector3d>();
-
+            NRosy rosy = new NRosy();
+            double gradient_size = 10;
+            int iter = 0;
+            double stiffness = 5.0;
+            bool direct_round = false;
             DA.GetData(0, ref m);
-            DA.GetDataList(1, B);
-            DA.GetDataList(2, FF1);
-            DA.GetDataList(3, FF2);
+            DA.GetData(1, ref rosy);
+            DA.GetData(2, ref gradient_size);
+            DA.GetData(3, ref stiffness);
+            DA.GetData(4, ref direct_round);
+            DA.GetData(5, ref iter);
 
-            if (B.Count == 0) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid number of constraints");
-            if (m.Faces.Count < 20) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The input mesh is too coarse.");
-            if (B.Count > (m.Faces.Count * 0.1)) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Too many constraints for the given mesh resolution.");
+            Vector3d[] UV;
+            MeshFace[] FUV;
+            Parameterizations.BuildSeamlessIntegerParameterization(m, rosy.X1, rosy.X2, gradient_size, stiffness, direct_round, iter, out UV, out FUV);
 
-            NRosy rosy = new NRosy(m, B, FF1, FF2);
-
-            DA.SetData(0, rosy);
+            DA.SetDataList(0, UV);
+            DA.SetDataList(1, FUV);
         }
 
         /// <summary>
@@ -77,8 +82,7 @@ namespace CGeomGH.Parameterization
         {
             get
             {
-
-                return Properties.Resources.Resources.NRosy;
+                return Properties.Resources.Resources.Seamless;
             }
         }
 
@@ -89,7 +93,7 @@ namespace CGeomGH.Parameterization
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("8006e788-333c-41ad-8744-9655c794ff34"); }
+            get { return new Guid("1baf7a04-a76b-49bd-b47f-720611c80b38"); }
         }
     }
 }
