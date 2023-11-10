@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "dDTaY51hN0v//2OZj/0w48LB3/iB955CqA+F3Of07ePw5bOi8bwuawgTlqp4ssTR7xGSxwoyK7orj9X38dAsjA==",
+  "dgSpecHash": "F0L+JWHsCO2WPSedfcfMjWYTb4fYrEDVpRDd5xtRIqOWMr+tzR1OZkiKfmakF2K5oh9+naRpEI3Vc+nKgYZv/g==",
   "success": true,
   "projectFilePath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/CGeomGH.csproj",
   "expectedPackageFiles": [
     "/Users/suzuki/.nuget/packages/grasshopper/7.0.20314.3001/grasshopper.7.0.20314.3001.nupkg.sha512",
+    "/Users/suzuki/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/Users/suzuki/.nuget/packages/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512",
     "/Users/suzuki/.nuget/packages/rhinocommon/7.0.20314.3001/rhinocommon.7.0.20314.3001.nupkg.sha512"
   ],
   "logs": []

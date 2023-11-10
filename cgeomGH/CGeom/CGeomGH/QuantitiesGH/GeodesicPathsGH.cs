@@ -29,7 +29,7 @@ namespace CGeomGH.QuantitiesGH
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddPointParameter("SourcePoints", "Source", "Source points. ", GH_ParamAccess.list);
+            pManager.AddPointParameter("SourcePoint", "Source", "Source point. ", GH_ParamAccess.item);
             pManager.AddPointParameter("TargetPoints", "Target", "Target points. ", GH_ParamAccess.list);
         }
 
@@ -49,13 +49,13 @@ namespace CGeomGH.QuantitiesGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<Point3d> sourcePoints = new List<Point3d>();
+            Point3d sourcePoint = Point3d.Unset;
             List<Point3d> targetPoints = new List<Point3d>();
             DA.GetData(0, ref m);
-            DA.GetDataList(1, sourcePoints);
+            DA.GetData(1, ref sourcePoint);
             DA.GetDataList(2, targetPoints);
 
-            List<Polyline> gp = DiscreteQuantities.ExactGeodesicPaths(m, sourcePoints, targetPoints);
+            List<Polyline> gp = DiscreteQuantities.ExactGeodesicPaths(m, sourcePoint, targetPoints);
 
             DA.SetDataList(0, gp);
         }

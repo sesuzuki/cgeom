@@ -1,33 +1,34 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/QuantitiesGH/ExactGeodesicDistancesGH.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomLib/Tools/Utils.cs">
     <Files>
-      <File FileName="CGeomLib/Tools/Processing.cs" Line="60" Column="19" />
-      <File FileName="CGeomGH/Processing/EdgeVectorsGH.cs" Line="63" Column="1" />
-      <File FileName="CGeomGH/Processing/ParallelTransportGH.cs" Line="73" Column="10" />
-      <File FileName="CGeomGH/QuantitiesGH/ExactGeodesicDistancesGH.cs" Line="57" Column="31" />
+      <File FileName="CGeomGH/QuantitiesGH/GeodesicPathsGH.cs" Line="58" Column="85" />
+      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="323" Column="32" />
+      <File FileName="CGeomLib/Wrappers/Kernel.DiscreteQuantities.cs" />
+      <File FileName="CGeomGH/QuantitiesGH/HeatGeodesicsGH.cs" Line="58" Column="53" />
+      <File FileName="CGeomLib/Tools/Utils.cs" Line="124" Column="46" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
-          <Node name="CGeom" expanded="True" selected="True">
+          <Node name="CGeom" expanded="True">
             <Node name="CGeomGH" expanded="True">
-              <Node name="ProcessingGH" expanded="True" />
               <Node name="QuantitiesGH" expanded="True" />
             </Node>
             <Node name="CGeomLib" expanded="True">
-              <Node name="Tools" expanded="True" />
-              <Node name="Wrappers" expanded="True" />
+              <Node name="Tools" expanded="True">
+                <Node name="Utils.cs" selected="True" />
+              </Node>
             </Node>
           </Node>
         </State>
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
-  <MultiItemStartupConfigurations />
 </Properties>

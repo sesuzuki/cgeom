@@ -14,7 +14,7 @@
         "outputPath": "/Users/suzuki/Code/cgeom/cgeomGH/CGeom/CGeomGH/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/suzuki/.config/NuGet/NuGet.Config"
+          "/Users/suzuki/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net48"
@@ -46,9 +46,15 @@
               "include": "Compile, Build",
               "target": "Package",
               "version": "[7.0.20314.3001, )"
+            },
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
             }
           },
-          "runtimeIdentifierGraphPath": "/Users/suzuki/Library/Caches/VisualStudio/17.0/MSBuild/38372_3/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/7.0.310/RuntimeIdentifierGraph.json"
         }
       }
     },
@@ -60,7 +66,7 @@
         "packagesPath": "/Users/suzuki/.nuget/packages/",
         "projectStyle": "PackagesConfig",
         "configFilePaths": [
-          "/Users/suzuki/.config/NuGet/NuGet.Config"
+          "/Users/suzuki/.nuget/NuGet/NuGet.Config"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
