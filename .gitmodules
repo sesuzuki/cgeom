@@ -1,6 +1,6 @@
 [submodule "dependencies/OpenMesh"]
 	path = dependencies/OpenMesh
-	url = git@gitlab.vci.rwth-aachen.de:OpenMesh/OpenMesh.git
+	url = https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
 [submodule "dependencies/libQEx"]
 	path = dependencies/libQEx
-	url = git@github.com:hcebke/libQEx.git
+	url = https://github.com/hcebke/libQEx.git
