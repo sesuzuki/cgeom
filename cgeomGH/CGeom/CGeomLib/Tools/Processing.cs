@@ -90,7 +90,7 @@ namespace CGeom.Tools
             if (errorCode == 0)
             {
                 vectors = Utils.ParsePointerToVectorArr(outVecCoords, outCount);
-                points = Utils.ParsePointerToPointArr(outCoords, outCount);
+                points = Utils.ParsePointerToPoint3DArr(outCoords, outCount);
             }
             else
             {
@@ -112,7 +112,7 @@ namespace CGeom.Tools
 
             if (errorCode == 0)
             {
-                midPoints = Utils.ParsePointerToPointArr(outEdgeMidCoords, outCount);
+                midPoints = Utils.ParsePointerToPoint3DArr(outEdgeMidCoords, outCount);
                 parallelVectors = Utils.ParsePointerToVectorArr(outParCoords, outCount);
                 perpendicularVectors = Utils.ParsePointerToVectorArr(outPerpCoords, outCount);
             }
@@ -137,7 +137,7 @@ namespace CGeom.Tools
 
             if (errorCode == 0)
             {
-                Point3d[] outV = Utils.ParsePointerToPointArr(outCoords, outNumVertices, Utils.StorageOrder.RowMajor);
+                Point3d[] outV = Utils.ParsePointerToPoint3DArr(outCoords, outNumVertices, Utils.StorageOrder.RowMajor);
                 MeshFace[] outF = Utils.ParsePointerToMeshFaceArr(outFaces, outNumFaces, Utils.StorageOrder.RowMajor);
 
                 Mesh outMesh = new Mesh();

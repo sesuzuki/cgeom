@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace CGeom.Tools
 {
-    public static class Parameterizations
+    public static class Parametrizations
     {
         public static void BuildSeamlessIntegerParameterization(Mesh mesh, IEnumerable<Vector3d> X1, IEnumerable<Vector3d> X2, double gradient_size, double stiffness, bool direct_round, int numIterations, out Vector3d[] UV, out MeshFace[] FUV)
         {
@@ -71,6 +71,68 @@ namespace CGeom.Tools
             planarity = ParsePointerToDoubleArr(ptrPlanarity, outPlanarityCount);
 
             return pm;
+        }
+
+        public static void HarmonicParametrization(Mesh mesh, double scaleFactor, out Mesh mesh3D, out Mesh mesh2D)
+        {
+            // Parse mesh data
+            double[] inCoords;
+            int[] inFaces;
+            int numVertices, numFaces;
+            ParseTriangleRhinoMesh(mesh, out inCoords, out inFaces, out numVertices, out numFaces);
+
+            int numUV;
+            IntPtr ptrUV, outErrorMsg;
+            Kernel.Processing.CgeomHarmonicParametrization(numVertices, numFaces, inCoords, inFaces, out numUV, out ptrUV, out outErrorMsg);
+
+            Point2f[] UV = ParsePointerToPoint2fArr(ptrUV, numUV);
+
+            // 3d mesh with texture coordinates
+            mesh3D = new Mesh();
+            mesh3D.Vertices.AddVertices(mesh.Vertices);
+            mesh3D.TextureCoordinates.AddRange(UV);
+            mesh3D.Faces.AddFaces(mesh.Faces);
+            mesh3D.UnifyNormals();
+            mesh3D.Normals.ComputeNormals();
+
+            // 2d mesh with texture coordinates
+            mesh2D = new Mesh();
+            mesh2D.Vertices.AddVertices(UV.Select( p => new Point3d(p.X, p.Y, 0)));
+            mesh2D.Faces.AddFaces(mesh.Faces);
+            mesh2D.UnifyNormals();
+            mesh2D.Normals.ComputeNormals();
+            mesh2D.Scale(scaleFactor);
+        }
+
+        public static void LeastSquaresConformalMaps(Mesh mesh, double scaleFactor, out Mesh mesh3D, out Mesh mesh2D)
+        {
+            // Parse mesh data
+            double[] inCoords;
+            int[] inFaces;
+            int numVertices, numFaces;
+            ParseTriangleRhinoMesh(mesh, out inCoords, out inFaces, out numVertices, out numFaces);
+
+            int numUV;
+            IntPtr ptrUV, outErrorMsg;
+            Kernel.Processing.CgeomLeastSquaresConformalMaps(numVertices, numFaces, inCoords, inFaces, out numUV, out ptrUV, out outErrorMsg);
+
+            Point2f[] UV = ParsePointerToPoint2fArr(ptrUV, numUV);
+
+            // 3d mesh with texture coordinates
+            mesh3D = new Mesh();
+            mesh3D.Vertices.AddVertices(mesh.Vertices);
+            mesh3D.TextureCoordinates.AddRange(UV);
+            mesh3D.Faces.AddFaces(mesh.Faces);
+            mesh3D.UnifyNormals();
+            mesh3D.Normals.ComputeNormals();
+
+            // 2d mesh with texture coordinates
+            mesh2D = new Mesh();
+            mesh2D.Vertices.AddVertices(UV.Select(p => new Point3d(p.X, p.Y, 0)));
+            mesh2D.Faces.AddFaces(mesh.Faces);
+            mesh2D.UnifyNormals();
+            mesh2D.Normals.ComputeNormals();
+            mesh2D.Scale(scaleFactor);
         }
     }
 }

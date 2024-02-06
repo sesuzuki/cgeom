@@ -13,6 +13,7 @@ namespace CGeom.Tools
         public static void ParseTriangleRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces, bool columnMajor=true)
         {
             if (mesh == null) throw new ArgumentException("Invalid mesh");
+            if (mesh.Faces.QuadCount > 0) mesh.Faces.ConvertQuadsToTriangles();
 
             if (columnMajor)
             {
@@ -32,6 +33,8 @@ namespace CGeom.Tools
         public static void ParseQuadRhinoMesh(Mesh mesh, out double[] coords, out int[] faces, out int numVertices, out int numFaces)
         {
             if (mesh == null) throw new ArgumentException("Invalid mesh");
+            if (mesh.Faces.TriangleCount > 0) throw new Exception("Invalid quad-mesh! The mesh contains triangular faces.");
+
 
             coords = Utils.FlattenPoint3dData(mesh.Vertices.ToPoint3dArray(), Utils.StorageOrder.ColumnMajor);
             faces = Utils.FlattenQuadFaceData(mesh, Utils.StorageOrder.ColumnMajor);
@@ -374,7 +377,7 @@ namespace CGeom.Tools
             else return false;
         }
 
-        public static Point3d[] ParsePointerToPointArr(IntPtr ptr, int count, StorageOrder order = StorageOrder.ColumnMajor)
+        public static Point3d[] ParsePointerToPoint3DArr(IntPtr ptr, int count, StorageOrder order = StorageOrder.ColumnMajor)
         {
             // Marshal flat list of vector components
             double[,] data = ParseDoubleArrToMatrixXd(ParsePointerToDoubleArr(ptr, count), 3, order);
@@ -385,6 +388,22 @@ namespace CGeom.Tools
             for (int i = 0; i < data.GetLength(0); i++)
             {
                 pts[i] = new Point3d(data[i, 0], data[i, 1], data[i, 2]);
+            }
+
+            return pts;
+        }
+
+        public static Point2f[] ParsePointerToPoint2fArr(IntPtr ptr, int count, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            // Marshal flat list of vector components
+            double[,] data = ParseDoubleArrToMatrixXd(ParsePointerToDoubleArr(ptr, count), 2, order);
+
+            // Matrix data to 3D point
+            Point2f[] pts = new Point2f[data.GetLength(0)];
+
+            for (int i = 0; i < data.GetLength(0); i++)
+            {
+                pts[i] = new Point2f(data[i, 0], data[i, 1]);
             }
 
             return pts;

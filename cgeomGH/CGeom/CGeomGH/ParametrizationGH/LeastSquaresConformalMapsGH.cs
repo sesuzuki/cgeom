@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using CGeom.Tools;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using CGeom.Tools;
 
-namespace CGeomGH.ParameterizationGH
+namespace CGeomGH.ParametrizationGH
 {
-    public class QuadMeshExtractionGH : GH_Component
+    public class LeastSquaresConformalMapsGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -17,10 +16,10 @@ namespace CGeomGH.ParameterizationGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public QuadMeshExtractionGH()
-          : base("QuadMesh", "QMesh",
-            "Quad mesh extraction from a given parameterization.",
-            "CGeom", "Parameterization")
+        public LeastSquaresConformalMapsGH()
+          : base("LeastSquaresConformalMaps", "LSCM",
+                "Least-Squares Conformal Maps",
+            "CGeom", "Parametrization")
         {
         }
 
@@ -30,8 +29,7 @@ namespace CGeomGH.ParameterizationGH
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddVectorParameter("UV", "UV", "UV parameterization", GH_ParamAccess.list);
-            pManager.AddMeshFaceParameter("FUV", "FUV", "UV indexes per face", GH_ParamAccess.list);
+            pManager.AddNumberParameter("ScaleFactor", "ScaleFactor", "ScaleFactor", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -39,7 +37,8 @@ namespace CGeomGH.ParameterizationGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("QuadMesh", "QMesh", "Quadrangulated mesh", GH_ParamAccess.item);
+            pManager.AddMeshParameter("3D-Mesh", "3D-Mesh", "3D mesh with texture coordinates.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("2D-Mesh", "2D-Mesh", "2D mesh.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -50,15 +49,15 @@ namespace CGeomGH.ParameterizationGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            List<Vector3d> uv = new List<Vector3d>();
-            List<MeshFace> fuv = new List<MeshFace>();
+            double scaleFactor = 1.0;
             DA.GetData(0, ref m);
-            DA.GetDataList(1, uv);
-            DA.GetDataList(2, fuv);
+            DA.GetData(1, ref scaleFactor);
 
-            Mesh qm = Parameterizations.QuadMeshExtraction(m, uv, fuv);
+            Mesh mesh3D, mesh2D;
+            Parametrizations.LeastSquaresConformalMaps(m, scaleFactor, out mesh3D, out mesh2D);
 
-            DA.SetData(0, qm);
+            DA.SetData(0, mesh3D);
+            DA.SetData(1, mesh2D);
         }
 
         /// <summary>
@@ -69,7 +68,9 @@ namespace CGeomGH.ParameterizationGH
         {
             get
             {
-                return Properties.Resources.Resources.QuadExtraction;
+                // You can add image files to your project resources and access them like this:
+                //return Resources.IconForThisComponent;
+                return null;
             }
         }
 
@@ -80,7 +81,7 @@ namespace CGeomGH.ParameterizationGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("cfe84ada-7bb8-448b-a8f5-d5385947d2ad"); }
+            get { return new Guid("a4f8afb9-9058-4cb8-9926-e91ca64c1f5f"); }
         }
     }
 }

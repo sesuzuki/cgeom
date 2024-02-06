@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using CGeom.Tools;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.ProcessingGH
+namespace CGeomGH.ParametrizationGH
 {
     public class HarmonicGH : GH_Component
     {
@@ -17,9 +17,9 @@ namespace CGeomGH.ProcessingGH
         /// new tabs/panels will automatically be created.
         /// </summary>
         public HarmonicGH()
-          : base("HarmonicGH", "Nickname",
-            "HarmonicGH description",
-            "Category", "Subcategory")
+          : base("Harmonic", "Harmonic",
+            "Harmonic Parametrization",
+            "CGeom", "Parametrization")
         {
         }
 
@@ -28,6 +28,8 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("ScaleFactor", "ScaleFactor", "ScaleFactor", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -35,6 +37,8 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddMeshParameter("3D-Mesh", "3D-Mesh", "3D mesh with texture coordinates.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("2D-Mesh", "2D-Mesh", "2D mesh.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -44,6 +48,16 @@ namespace CGeomGH.ProcessingGH
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            Mesh m = null;
+            double scaleFactor = 1.0;
+            DA.GetData(0, ref m);
+            DA.GetData(1, ref scaleFactor);
+
+            Mesh mesh3D, mesh2D;
+            Parametrizations.HarmonicParametrization(m, scaleFactor, out mesh3D, out mesh2D);
+
+            DA.SetData(0, mesh3D);
+            DA.SetData(1, mesh2D);
         }
 
         /// <summary>

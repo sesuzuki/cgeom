@@ -53,6 +53,14 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomRemeshAlongIsoline")]
             internal static extern int CgeomRemeshAlongIsoline(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, [In] double[] inScalarField, double inIsoValue, out int outVertexCount, out int outFaceCount, out IntPtr outCoords, out IntPtr outFaces, out IntPtr error);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomHarmonicParametrization")]
+            internal static extern int CgeomHarmonicParametrization(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outUVCount, out IntPtr outUV, out IntPtr errorMessage);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomLeastSquaresConformalMaps")]
+            internal static extern int CgeomLeastSquaresConformalMaps(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outUVCount, out IntPtr outUV, out IntPtr errorMessage);
         }
     }
 }

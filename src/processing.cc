@@ -30,6 +30,10 @@
 #include <igl/min_quad_with_fixed.h>
 #include <igl/heat_geodesics.h>
 #include <igl/remesh_along_isoline.h>
+#include <igl/boundary_loop.h>
+#include <igl/harmonic.h>
+#include <igl/map_vertices_to_circle.h>
+#include <igl/lscm.h>
 
 
 extern "C"
@@ -437,33 +441,100 @@ namespace CGeom
             igl::remesh_along_isoline(V, F, S, inIsoValue, U, G, SU, J, BC, L);
 
             // Parse quad mesh vertex data
-            *outVertexCount = U.size();
-            auto sV = *outVertexCount * sizeof(double);
-            *outCoords = static_cast<double *>(malloc(sV));
+            // *outVertexCount = U.size();
+            // auto sV = *outVertexCount * sizeof(double);
+            // *outCoords = static_cast<double *>(malloc(sV));
 
-            std::vector<double> coords;
-            for(int i=0; i<U.rows(); i++){
-                auto vertex = U.row(i);
-                coords.push_back(vertex[0]);
-                coords.push_back(vertex[1]);
-                coords.push_back(vertex[2]);
-            }
-            std::memcpy(*outCoords, coords.data(), sV);
+            // std::vector<double> coords;
+            // for(int i=0; i<U.rows(); i++){
+            //     auto vertex = U.row(i);
+            //     coords.push_back(vertex[0]);
+            //     coords.push_back(vertex[1]);
+            //     coords.push_back(vertex[2]);
+            // }
+            // std::memcpy(*outCoords, coords.data(), sV);
 
             // Parse quad mesh face data
-            *outFaceCount = G.size();
-            auto sF = *outFaceCount * sizeof(int);
-            *outFaces = static_cast<int *>(malloc(sF));
+            // *outFaceCount = G.size();
+            // auto sF = *outFaceCount * sizeof(int);
+            // *outFaces = static_cast<int *>(malloc(sF));
 
-            std::vector<int> faces;
-            for(int i=0; i<G.rows(); i++){
-                auto f = G.row(i);
-                faces.push_back(f[0]);
-                faces.push_back(f[1]);
-                faces.push_back(f[2]);
-            }
-            std::memcpy(*outFaces, faces.data(), sF);
+            // std::vector<int> faces;
+            // for(int i=0; i<G.rows(); i++){
+            //     auto f = G.row(i);
+            //     faces.push_back(f[0]);
+            //     faces.push_back(f[1]);
+            //     faces.push_back(f[2]);
+            // }
+            // std::memcpy(*outFaces, faces.data(), sF);
 
+            cgeomParseMatrixXd(U, outCoords, outVertexCount);
+            cgeomParseMatrixXi(G, outFaces, outFaceCount);
+
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
+    }
+
+    CGEOM_PARAM_API int cgeomHarmonicParametrization(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outUVCount, double **outUV, const char **errorMessage){
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3); 
+
+            // Find the open boundary
+            Eigen::VectorXi bnd;
+            igl::boundary_loop(F,bnd);
+
+            // Map the boundary to a circle, preserving edge proportions
+            Eigen::MatrixXd bnd_uv;
+            igl::map_vertices_to_circle(V,bnd,bnd_uv);
+
+            // Harmonic parametrization for the internal vertices
+            Eigen::MatrixXd V_uv;
+            igl::harmonic(V,F,bnd,bnd_uv,1,V_uv);
+
+            cgeomParseMatrixXd(V_uv, outUV, outUVCount);
+            *errorMessage = "Success";
+            return 0;
+        }
+        catch (const std::runtime_error &error)
+        {
+            *errorMessage = error.what();
+            return 1;
+        }
+    }
+
+    CGEOM_PARAM_API int cgeomLeastSquaresConformalMaps(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outUVCount, double **outUV, const char **errorMessage){
+        try{
+            // Build mesh
+            Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords, numVertices, 3);
+            Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3); 
+
+            // Find the open boundary
+            Eigen::VectorXi bnd;
+            igl::boundary_loop(F,bnd);
+            
+            /////////////////////////////////////
+            // TODO: fix boundary conditions. Exception is thrown!!!!!!!!!!
+            // Fix two points on the boundary
+            Eigen::VectorXi b = { bnd[0], bnd[2] }; //int(bnd[0]), bnd[int(bnd.size() / 2)] };
+
+            Eigen::MatrixXd bc(2,3);
+            bc << 0.0, 0.0, 0.0,
+                  1.0, 0.0, 0.0;
+            /////////////////////////////////////
+
+            // LSCM parametrization
+            Eigen::MatrixXd V_uv;
+            igl::lscm(V,F,b,bc,V_uv);
+
+            cgeomParseMatrixXd(V_uv, outUV, outUVCount);
             *errorMessage = "Success";
             return 0;
         }

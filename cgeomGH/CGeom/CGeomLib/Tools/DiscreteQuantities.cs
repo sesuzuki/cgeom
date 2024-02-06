@@ -107,7 +107,7 @@ namespace CGeom.Tools
             int outCoordsCount;
             Kernel.DiscreteQuantities.CgeomBarycenters(numVertices, numFaces, coords, faces, out outCoordsCount, out outCoords);
 
-            return Utils.ParsePointerToPointArr(outCoords, outCoordsCount);
+            return Utils.ParsePointerToPoint3DArr(outCoords, outCoordsCount);
         }
 
         public static Vector3d[] PerVertexNormals(Mesh mesh)
@@ -373,7 +373,7 @@ namespace CGeom.Tools
 
             if (errorCode == 0)
             {
-                Point3d[] pts = Utils.ParsePointerToPointArr(outCoords, outCount, Utils.StorageOrder.RowMajor);
+                Point3d[] pts = Utils.ParsePointerToPoint3DArr(outCoords, outCount, Utils.StorageOrder.RowMajor);
                 int[] sizes = Utils.ParsePointerToIntArr(outCoordsSize, numTargets);
 
                 List<Polyline> paths = new List<Polyline>();

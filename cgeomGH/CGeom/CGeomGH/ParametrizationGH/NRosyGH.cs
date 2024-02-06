@@ -5,7 +5,7 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace CGeomGH.ParameterizationGH
+namespace CGeomGH.ParametrizationGH
 {
     public class NRosyGH : GH_Component
     {
@@ -19,7 +19,7 @@ namespace CGeomGH.ParameterizationGH
         public NRosyGH()
           : base("NRosy", "NRosy",
             "Create a N-rotationally Symmetric Tangent Field.",
-            "CGeom", "Parameterization")
+            "CGeom", "Parametrization")
         {
         }
 

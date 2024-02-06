@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Resources;
-using CGeom.Tools;
+
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using CGeom.Tools;
 
-namespace CGeomGH.ParameterizationGH
+namespace CGeomGH.ParametrizationGH
 {
-    public class DeconstructNRosyGH : GH_Component
+    public class SeamlessIntegerGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -17,10 +17,10 @@ namespace CGeomGH.ParameterizationGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public DeconstructNRosyGH()
-          : base("Deconstruct NRosy", "DeNRosy",
-            "Extract the components of an N-Rosy field.",
-            "CGeom", "Parameterization")
+        public SeamlessIntegerGH()
+          : base("SIGParam", "SIGParam",
+            "Seamless-Integer-Grid Parameterization",
+            "CGeom", "Parametrization")
         {
         }
 
@@ -29,7 +29,12 @@ namespace CGeomGH.ParameterizationGH
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("N-Rosy", "N-Rosy", "N-Rosy field.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddGenericParameter("NRosy", "NRosy", "NRosy field.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("GradSize","GradSize","Gradient size.", GH_ParamAccess.item,10);
+            pManager.AddNumberParameter("Stiffness", "Stiffness", "Stiffness", GH_ParamAccess.item,5.0);
+            pManager.AddBooleanParameter("Round", "Round", "Direct round", GH_ParamAccess.item, false);
+            pManager.AddIntegerParameter("Iterations", "Iter", "Number of iterations", GH_ParamAccess.item, 1);
         }
 
         /// <summary>
@@ -37,11 +42,8 @@ namespace CGeomGH.ParameterizationGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Barycenter", "B", "Barycenters associated with the field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X1", "X1", "First representative vectors of the field.", GH_ParamAccess.list);
-            pManager.AddVectorParameter("X2", "X2", "Second representative vectors of the field.", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("Singularities", "S", "Singularities of the field.", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Degree", "Degree", "Degree of the field.", GH_ParamAccess.item);
+            pManager.AddVectorParameter("UV", "UV", "UV parameterization.", GH_ParamAccess.list);
+            pManager.AddMeshFaceParameter("FUV", "FUV", "Indexes of UV parameters per mesh face.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -51,15 +53,25 @@ namespace CGeomGH.ParameterizationGH
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            Mesh m = null;
             NRosy rosy = new NRosy();
+            double gradient_size = 10;
+            int iter = 0;
+            double stiffness = 5.0;
+            bool direct_round = false;
+            DA.GetData(0, ref m);
+            DA.GetData(1, ref rosy);
+            DA.GetData(2, ref gradient_size);
+            DA.GetData(3, ref stiffness);
+            DA.GetData(4, ref direct_round);
+            DA.GetData(5, ref iter);
 
-            DA.GetData(0, ref rosy);
+            Vector3d[] UV;
+            MeshFace[] FUV;
+            Parametrizations.BuildSeamlessIntegerParameterization(m, rosy.X1, rosy.X2, gradient_size, stiffness, direct_round, iter, out UV, out FUV);
 
-            DA.SetDataList(0, rosy.Barycenters);
-            DA.SetDataList(1, rosy.X1);
-            DA.SetDataList(2, rosy.X2);
-            DA.SetDataList(3, rosy.Singularities);
-            DA.SetData(4, rosy.Degree);
+            DA.SetDataList(0, UV);
+            DA.SetDataList(1, FUV);
         }
 
         /// <summary>
@@ -70,7 +82,7 @@ namespace CGeomGH.ParameterizationGH
         {
             get
             {
-                return Properties.Resources.Resources.DeconstructNRosy;
+                return Properties.Resources.Resources.Seamless;
             }
         }
 
@@ -81,7 +93,7 @@ namespace CGeomGH.ParameterizationGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("4fe1d1b6-9fe6-4d2c-a38c-853f445c2202"); }
+            get { return new Guid("1baf7a04-a76b-49bd-b47f-720611c80b38"); }
         }
     }
 }

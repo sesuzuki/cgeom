@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using CGeom.Tools;
+
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using CGeom.Tools;
 
-namespace CGeomGH.ProcessingGH
+namespace CGeomGH.ParametrizationGH
 {
-    public class PlanarizationGH : GH_Component
+    public class QuadMeshExtractionGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +17,10 @@ namespace CGeomGH.ProcessingGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public PlanarizationGH()
-          : base("Planarization", "Planarization",
-            "Planarization of a given quad mesh.",
-            "CGeom", "Processing")
+        public QuadMeshExtractionGH()
+          : base("QuadMesh", "QMesh",
+            "Quad mesh extraction from a given parameterization.",
+            "CGeom", "Parametrization")
         {
         }
 
@@ -29,8 +30,8 @@ namespace CGeomGH.ProcessingGH
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Threshold", "Threshold", "Threshold for considering planarity.", GH_ParamAccess.item, 1e-3);
-            pManager.AddIntegerParameter("Iterations", "Iterations", "Number of iterations.", GH_ParamAccess.item, 1);
+            pManager.AddVectorParameter("UV", "UV", "UV parameterization", GH_ParamAccess.list);
+            pManager.AddMeshFaceParameter("FUV", "FUV", "UV indexes per face", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -38,8 +39,7 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "M", "Resulting mesh.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Planarity", "Planarity", "Planarity.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("QuadMesh", "QMesh", "Quadrangulated mesh", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -50,23 +50,15 @@ namespace CGeomGH.ProcessingGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            int iterations = 1;
-            double threshold = 1e-3;
+            List<Vector3d> uv = new List<Vector3d>();
+            List<MeshFace> fuv = new List<MeshFace>();
             DA.GetData(0, ref m);
-            DA.GetData(1, ref threshold);
-            DA.GetData(2, ref iterations);
+            DA.GetDataList(1, uv);
+            DA.GetDataList(2, fuv);
 
-            if (m.Faces.TriangleCount > 0)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The mesh contains triangular faces. Only quad meshes can be planarize.");
-                return;
-            }
+            Mesh qm = Parametrizations.QuadMeshExtraction(m, uv, fuv);
 
-            double[] planarity;
-            Mesh pm = Parametrizations.Planarization(m, iterations, out planarity, threshold);
-
-            DA.SetData(0, pm);
-            DA.SetDataList(1, planarity);
+            DA.SetData(0, qm);
         }
 
         /// <summary>
@@ -77,7 +69,7 @@ namespace CGeomGH.ProcessingGH
         {
             get
             {
-                return Properties.Resources.Resources.Planarization;
+                return Properties.Resources.Resources.QuadExtraction;
             }
         }
 
@@ -88,7 +80,7 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("40d6187a-d8dd-4507-bf24-9c93d65800d6"); }
+            get { return new Guid("cfe84ada-7bb8-448b-a8f5-d5385947d2ad"); }
         }
     }
 }

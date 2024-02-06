@@ -42,4 +42,8 @@ namespace CGeom
     CGEOM_PARAM_API int cgeomEdgeVectors(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outCount, double **outEdgeMidCoords, double **outParCoords, double **outPerpCoords, const char **errorMessage);
 
     CGEOM_PARAM_API int cgeomRemeshAlongIsoline(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double *inScalarField, double inIsoValue, size_t *outVertexCount, size_t *outFaceCount, double **outCoords, int **outFaces, const char **errorMessage);
+
+    CGEOM_PARAM_API int cgeomHarmonicParametrization(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outUVCount, double **outUV, const char **errorMessage);
+    
+    CGEOM_PARAM_API int cgeomLeastSquaresConformalMaps(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outUVCount, double **outUV, const char **errorMessage);
 }

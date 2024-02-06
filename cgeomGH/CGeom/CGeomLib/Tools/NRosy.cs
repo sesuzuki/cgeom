@@ -52,7 +52,7 @@ namespace CGeom.Tools
             int outCoordsCount;
             Kernel.DiscreteQuantities.CgeomBarycenters(numVertices, numFaces, coords, faces, out outCoordsCount, out outCoords);
 
-            Barycenters = Utils.ParsePointerToPointArr(outCoords, outCoordsCount);
+            Barycenters = Utils.ParsePointerToPoint3DArr(outCoords, outCoordsCount);
         }
 
         public override string ToString()

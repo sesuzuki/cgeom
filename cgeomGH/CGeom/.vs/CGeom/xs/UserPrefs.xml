@@ -1,29 +1,20 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MultiItemStartupConfigurations />
-  <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
-  </MonoDevelop.Ide.DebuggingService.Breakpoints>
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomLib/Tools/Utils.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/ParametrizationGH/HarmonicGH.cs">
     <Files>
-      <File FileName="CGeomGH/QuantitiesGH/GeodesicPathsGH.cs" Line="58" Column="85" />
-      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="323" Column="32" />
-      <File FileName="CGeomLib/Wrappers/Kernel.DiscreteQuantities.cs" />
-      <File FileName="CGeomGH/QuantitiesGH/HeatGeodesicsGH.cs" Line="58" Column="53" />
-      <File FileName="CGeomLib/Tools/Utils.cs" Line="124" Column="46" />
+      <File FileName="CGeomGH/ParametrizationGH/HarmonicGH.cs" Line="21" Column="14" />
+      <File FileName="CGeomLib/Tools/Processing.cs" Line="140" Column="61" />
+      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="376" Column="60" />
+      <File FileName="CGeomLib/Wrappers/Kernel.Processing.cs" Line="63" Column="45" />
+      <File FileName="CGeomLib/Tools/Parametrizations.cs" Line="117" Column="36" />
+      <File FileName="CGeomGH/ParametrizationGH/LeastSquaresConformalMapsGH.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="CGeom" expanded="True">
             <Node name="CGeomGH" expanded="True">
-              <Node name="QuantitiesGH" expanded="True" />
-            </Node>
-            <Node name="CGeomLib" expanded="True">
-              <Node name="Tools" expanded="True">
-                <Node name="Utils.cs" selected="True" />
+              <Node name="ParametrizationGH" expanded="True">
+                <Node name="HarmonicGH.cs" selected="True" />
               </Node>
             </Node>
           </Node>
@@ -31,4 +22,11 @@
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
 </Properties>
