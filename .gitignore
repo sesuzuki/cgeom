@@ -9,4 +9,5 @@ bin
 .vs_*
 packages
 packages_*
+obj
 obj_*
