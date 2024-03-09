@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "7YbElLKHXZLVJQfe2ASUBi+yK/0JKTsXQAAMKLyf78u6HO1mA0j4qlENzK+vh+Ym9TsfWbtkPVZO9tVWEQbTmA==",
+  "success": true,
+  "projectFilePath": "/Users/seiichi/Code/cgeom/cgeomGH/CGeom/CGeomGH/CGeomGH.csproj",
+  "expectedPackageFiles": [
+    "/Users/seiichi/.nuget/packages/grasshopper/8.0.23304.9001/grasshopper.8.0.23304.9001.nupkg.sha512",
+    "/Users/seiichi/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/Users/seiichi/.nuget/packages/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512",
+    "/Users/seiichi/.nuget/packages/rhinocommon/8.0.23304.9001/rhinocommon.8.0.23304.9001.nupkg.sha512"
+  ],
+  "logs": []
+}

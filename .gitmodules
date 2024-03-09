@@ -7,3 +7,6 @@
 [submodule "dependencies/BFF"]
 	path = dependencies/BFF
 	url = https://github.com/GeometryCollective/boundary-first-flattening.git
+[submodule "dependencies/boundary-first-flattening"]
+	path = dependencies/boundary-first-flattening
+	url = https://github.com/GeometryCollective/boundary-first-flattening.git
