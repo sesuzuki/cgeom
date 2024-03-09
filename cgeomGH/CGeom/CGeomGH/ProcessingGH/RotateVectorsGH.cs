@@ -87,7 +87,7 @@ namespace CGeomGH.ProcessingGH
         {
             get
             {
-                return Properties.Resources.Resources.RotateVectors;
+                return null;// Properties.Resources.Resources.RotateVectors;
             }
         }
 

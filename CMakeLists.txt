@@ -5,16 +5,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(cgeom)
 
-# Set target architecture x86_64 for compatibility with Rhino7 
-set(RHINO7_COMPATIBILITY "Set compatibility with Rhino 7 on Apple silicon machines" on)
-if(APPLE)
-    if(RHINO7_COMPATIBILITY)
-        set(CMAKE_OSX_ARCHITECTURES "x86_64")
-    endif()
-endif()
 
 set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/libcgeom)
 
 # CMake plugin for vscode
 include(CMakeToolsHelpers OPTIONAL)
@@ -41,7 +34,7 @@ include_directories(${CMAKE_SOURCE_DIR}/dependencies/libQEx/interfaces/c)
 ################################################################################
 # Library
 ################################################################################
-link_directories(${CMAKE_SOURCE_DIR}/bin)
+link_directories(${CMAKE_SOURCE_DIR}/bin/libcgeom)
 
 add_subdirectory(src)
 

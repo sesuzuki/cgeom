@@ -70,7 +70,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.PerVertexPrincipalCurvatures;
+                return null;// Properties.Resources.Resources.PerVertexPrincipalCurvatures;
             }
         }
 

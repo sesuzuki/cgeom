@@ -70,7 +70,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.LocalBasis;
+                return null;// Properties.Resources.Resources.LocalBasis;
             }
         }
 

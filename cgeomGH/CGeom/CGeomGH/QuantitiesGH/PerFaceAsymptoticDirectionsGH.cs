@@ -68,7 +68,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.PerFaceAsymptoticDirections;
+                return null;// Properties.Resources.Resources.PerFaceAsymptoticDirections;
             }
         }
 

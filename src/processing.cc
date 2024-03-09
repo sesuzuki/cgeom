@@ -440,34 +440,6 @@ namespace CGeom
 
             igl::remesh_along_isoline(V, F, S, inIsoValue, U, G, SU, J, BC, L);
 
-            // Parse quad mesh vertex data
-            // *outVertexCount = U.size();
-            // auto sV = *outVertexCount * sizeof(double);
-            // *outCoords = static_cast<double *>(malloc(sV));
-
-            // std::vector<double> coords;
-            // for(int i=0; i<U.rows(); i++){
-            //     auto vertex = U.row(i);
-            //     coords.push_back(vertex[0]);
-            //     coords.push_back(vertex[1]);
-            //     coords.push_back(vertex[2]);
-            // }
-            // std::memcpy(*outCoords, coords.data(), sV);
-
-            // Parse quad mesh face data
-            // *outFaceCount = G.size();
-            // auto sF = *outFaceCount * sizeof(int);
-            // *outFaces = static_cast<int *>(malloc(sF));
-
-            // std::vector<int> faces;
-            // for(int i=0; i<G.rows(); i++){
-            //     auto f = G.row(i);
-            //     faces.push_back(f[0]);
-            //     faces.push_back(f[1]);
-            //     faces.push_back(f[2]);
-            // }
-            // std::memcpy(*outFaces, faces.data(), sF);
-
             cgeomParseMatrixXd(U, outCoords, outVertexCount);
             cgeomParseMatrixXi(G, outFaces, outFaceCount);
 

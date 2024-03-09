@@ -70,7 +70,7 @@ namespace CGeomGH.ProcessingGH
         {
             get
             {
-                return Properties.Resources.Resources.LaplaceC;
+                return null;// Properties.Resources.Resources.LaplaceC;
             }
         }
 

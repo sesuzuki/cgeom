@@ -1,32 +1,29 @@
 ﻿<Properties StartupConfiguration="{59CD8214-6C46-494F-8DA8-06AE2AB13691}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/ParametrizationGH/HarmonicGH.cs">
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.Workbench ActiveDocument="CGeomGH/CGeomGHInfo.cs">
     <Files>
-      <File FileName="CGeomGH/ParametrizationGH/HarmonicGH.cs" Line="21" Column="14" />
-      <File FileName="CGeomLib/Tools/Processing.cs" Line="140" Column="61" />
-      <File FileName="CGeomLib/Tools/DiscreteQuantities.cs" Line="376" Column="60" />
-      <File FileName="CGeomLib/Wrappers/Kernel.Processing.cs" Line="63" Column="45" />
-      <File FileName="CGeomLib/Tools/Parametrizations.cs" Line="117" Column="36" />
-      <File FileName="CGeomGH/ParametrizationGH/LeastSquaresConformalMapsGH.cs" Line="1" Column="1" />
+      <File FileName="../../../../../../usr/local/share/dotnet/sdk/7.0.313/Microsoft.Common.CurrentVersion.targets" />
+      <File FileName="CGeomLib/Wrappers/Kernel.Processing.cs" />
+      <File FileName="CGeomLib/Wrappers/Kernel.cs" />
+      <File FileName="CGeomLib/Wrappers/Kernel.DiscreteQuantities.cs" />
+      <File FileName="CGeomLib/packages.config" />
+      <File FileName="CGeomGH/AssemblyInfo.cs" />
+      <File FileName="CGeomGH/CGeomGHInfo.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="CGeom" expanded="True">
-            <Node name="CGeomGH" expanded="True">
-              <Node name="ParametrizationGH" expanded="True">
-                <Node name="HarmonicGH.cs" selected="True" />
-              </Node>
-            </Node>
+            <Node name="CGeomGH" selected="True" />
           </Node>
         </State>
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
-  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.ItemProperties.CGeomGH PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
-  </MonoDevelop.Ide.DebuggingService.Breakpoints>
-  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
 </Properties>

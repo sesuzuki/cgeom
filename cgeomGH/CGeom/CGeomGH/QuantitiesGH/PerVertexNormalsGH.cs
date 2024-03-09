@@ -62,7 +62,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.PerVertexNormals;
+                return null;// Properties.Resources.Resources.PerVertexNormals;
             }
         }
 

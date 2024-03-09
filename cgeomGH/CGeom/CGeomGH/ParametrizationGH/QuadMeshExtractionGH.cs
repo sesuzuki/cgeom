@@ -69,7 +69,7 @@ namespace CGeomGH.ParametrizationGH
         {
             get
             {
-                return Properties.Resources.Resources.QuadExtraction;
+                return null;/// Properties.Resources.Resources.QuadExtraction;
             }
         }
 

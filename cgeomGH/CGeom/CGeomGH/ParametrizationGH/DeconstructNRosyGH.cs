@@ -70,7 +70,7 @@ namespace CGeomGH.ParametrizationGH
         {
             get
             {
-                return Properties.Resources.Resources.DeconstructNRosy;
+                return null;// Properties.Resources.Resources.DeconstructNRosy;
             }
         }
 

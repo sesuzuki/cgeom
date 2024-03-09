@@ -68,7 +68,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.PerVertexAsymptoticDirections;
+                return null;// Properties.Resources.Resources.PerVertexAsymptoticDirections;
             }
         }
 

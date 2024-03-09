@@ -376,12 +376,13 @@ namespace CGeom
         Eigen::VectorXd K;
         // Compute integral of Gaussian curvature
         igl::gaussian_curvature(V,F,K);
-        // Compute mass matrix
-        Eigen::SparseMatrix<double> M,Minv;
-        igl::massmatrix(V,F,igl::MASSMATRIX_TYPE_DEFAULT,M);
-        igl::invert_diag(M,Minv);
-        // Divide by area to get integral average
-        K = (Minv*K).eval();
+
+        // // Compute mass matrix
+        // Eigen::SparseMatrix<double> M,Minv;
+        // igl::massmatrix(V,F,igl::MASSMATRIX_TYPE_DEFAULT,M);
+        // igl::invert_diag(M,Minv);
+        // // Divide by area to get integral average
+        // K = (Minv*K).eval();
 
         // Parse data
         auto sizeVectors = K.size() * sizeof(double);
@@ -398,8 +399,8 @@ namespace CGeom
         V.setZero();
         F.setZero();
         K.setZero();
-        M.setZero();
-        Minv.setZero();
+        // M.setZero();
+        // Minv.setZero();
     }
 
     CGEOM_QUANT_API void cgeomMeanCurvature(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double **outH){

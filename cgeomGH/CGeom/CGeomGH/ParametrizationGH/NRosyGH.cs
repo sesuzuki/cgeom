@@ -78,7 +78,7 @@ namespace CGeomGH.ParametrizationGH
             get
             {
 
-                return Properties.Resources.Resources.NRosy;
+                return null;// Properties.Resources.Resources.NRosy;
             }
         }
 

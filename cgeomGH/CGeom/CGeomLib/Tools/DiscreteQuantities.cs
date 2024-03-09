@@ -10,6 +10,8 @@ namespace CGeom.Tools
 {
     public static class DiscreteQuantities
     {
+        public enum CurvatureMetricTypes { Gaussian, Mean }
+
         public static void PerVertexAsymptoticDirections(Mesh mesh, out Vector3d[] outVec1, out Vector3d[] outVec2, out int[] outIndexes)
         {
             int numVertices, numFaces;

@@ -75,7 +75,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.PerFacePrincipalCurvatures;
+                return null;// Properties.Resources.Resources.PerFacePrincipalCurvatures;
             }
         }
 

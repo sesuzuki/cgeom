@@ -62,7 +62,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.Barycenters;
+                return null;// Properties.Resources.Resources.Barycenters;
             }
         }
 

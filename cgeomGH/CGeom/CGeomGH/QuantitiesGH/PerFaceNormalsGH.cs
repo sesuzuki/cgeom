@@ -67,7 +67,7 @@ namespace CGeomGH.QuantitiesGH
         {
             get
             {
-                return Properties.Resources.Resources.PerFaceNormals;
+                return null;// Properties.Resources.Resources.PerFaceNormals;
             }
         }
 

@@ -82,7 +82,7 @@ namespace CGeomGH.ParametrizationGH
         {
             get
             {
-                return Properties.Resources.Resources.Seamless;
+                return null;// Properties.Resources.Resources.Seamless;
             }
         }
 

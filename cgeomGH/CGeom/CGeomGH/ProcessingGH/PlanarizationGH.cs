@@ -77,7 +77,7 @@ namespace CGeomGH.ProcessingGH
         {
             get
             {
-                return Properties.Resources.Resources.Planarization;
+                return null;// Properties.Resources.Resources.Planarization;
             }
         }
 
