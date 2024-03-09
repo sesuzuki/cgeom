@@ -4,3 +4,6 @@
 [submodule "dependencies/libQEx"]
 	path = dependencies/libQEx
 	url = https://github.com/hcebke/libQEx.git
+[submodule "dependencies/BFF"]
+	path = dependencies/BFF
+	url = https://github.com/GeometryCollective/boundary-first-flattening.git
