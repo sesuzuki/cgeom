@@ -7,4 +7,6 @@ bin
 *.0
 .vs
 .vs_*
-cgeomGH/CGeom/packages/
+packages
+packages_*
+obj_*
