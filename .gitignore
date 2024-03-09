@@ -5,3 +5,6 @@ build_*
 bin
 *.so
 *.0
+.vs
+.vs_*
+cgeomGH/CGeom/packages/
