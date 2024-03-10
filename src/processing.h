@@ -18,6 +18,8 @@ namespace CGeom
 
     CGEOM_PARAM_API void cgeomParseStdVectorInt(const std::vector<int> m, int **outData, size_t *outCount);
 
+    CGEOM_PARAM_API void cgeomParseStdVectorDouble(const std::vector<double> m, double **outData, size_t *outCount);
+
     CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, 
                                     int *inConstrainedFaces, double *inConstrainedVectorFaces, int degree,
                                     size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outSingularitiesCount, 

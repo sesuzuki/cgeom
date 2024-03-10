@@ -1,5 +1,6 @@
-add_library(cgeom SHARED discrete_quantities.h discrete_quantities.cc processing.h processing.cc)
-target_link_libraries(cgeom igl::core igl::comiso OpenMeshCored OpenMeshToolsd QEx)
+add_library(cgeom SHARED discrete_quantities.h discrete_quantities.cc processing.h processing.cc bff.h bff.cc)
+target_link_libraries(cgeom igl::core igl::comiso OpenMeshCored OpenMeshToolsd QEx bff)
+target_include_directories(cgeom PUBLIC ${BFF_INCLUDE_DIRS})
 set_target_properties(cgeom PROPERTIES CXX_STANDARD 14)
 set_target_properties(cgeom PROPERTIES CXX_STANDARD_REQUIRED ON)
 set_target_properties(cgeom PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/libcgeom)

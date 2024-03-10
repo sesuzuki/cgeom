@@ -7,11 +7,10 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using Rhino.Geometry.Intersect;
 
 namespace CGeomGH.ParametrizationGH
 {
-    public class HarmonicGH : GH_Component
+    public class BffGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -20,9 +19,9 @@ namespace CGeomGH.ParametrizationGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public HarmonicGH()
-          : base("Harmonic", "Harmonic",
-            "Harmonic Parametrization",
+        public BffGH()
+          : base("BFF", "BFF",
+            "Boundary first flattening for open surfaces without holes",
             "CGeom", "Parametrization")
         {
         }
@@ -61,16 +60,15 @@ namespace CGeomGH.ParametrizationGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            double scaleFactor = 1.0, angle = 0, length = 1e-3;
-            int uCount = 10, vCount = 10; 
+            double angle = 0, length = 1e-3;
+            int uCount = 10, vCount = 10;
             DA.GetData(0, ref m);
             DA.GetData(1, ref uCount);
             DA.GetData(2, ref vCount);
             DA.GetData(3, ref angle);
             DA.GetData(4, ref length);
 
-            Mesh mesh3D, disk;
-            Parametrizations.HarmonicParametrization(m, scaleFactor, out mesh3D, out disk);
+            Mesh disk = Bff.OpenSurfaceWithoutHolesToDisk(m);
 
             Curve[][] crvOnDisk, crvOnMesh3d;
             Parametrizations.CreateCheckerboardOnDisk(disk, m, uCount, vCount, angle, length, out crvOnDisk, out crvOnMesh3d);
@@ -109,7 +107,7 @@ namespace CGeomGH.ParametrizationGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("d142fa1b-7264-421c-be35-9f834a18861f"); }
+            get { return new Guid("b83128cd-82d6-4f17-8dbe-f4295725ff19"); }
         }
     }
 }

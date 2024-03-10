@@ -65,6 +65,13 @@ namespace CGeom
         std::memcpy(*outData, m.data(), sF);
     }
 
+    CGEOM_PARAM_API void cgeomParseStdVectorDouble(const std::vector<double> m, double **outData, size_t *outCount){
+        *outCount = m.size();
+        auto sF = *outCount * sizeof(double);
+        *outData = static_cast<double*>(malloc(sF));
+        std::memcpy(*outData, m.data(), sF);
+    }
+
     CGEOM_PARAM_API void cgeomNRosy(const int numVertices, const int numFaces, const int numConstraints, double *inCoords, int *inFaces, 
                                     int *inConstrainedFaces, double *inConstrainedVectorFaces, int degree,
                                     size_t *outX1CoordsCount, size_t *outX2CoordsCount, size_t *outSingularitiesCount, 

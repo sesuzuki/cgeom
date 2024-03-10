@@ -51,6 +51,7 @@
     </Reference>
     <Reference Include="Ed.Eto">
       <HintPath>..\packages\RhinoCommon.8.0.23304.9001\lib\net48\Ed.Eto.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Drawing" />
   </ItemGroup>
@@ -66,6 +67,8 @@
     <Compile Include="Tools\NRosy.cs" />
     <Compile Include="Utils\ColorMaps.cs" />
     <Compile Include="Utils\MetricsVisualization.cs" />
+    <Compile Include="Wrappers\Kernel.BFF.cs" />
+    <Compile Include="Tools\Bff.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\bin\libcgeom\libcgeom.dylib">
@@ -85,6 +88,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="..\..\..\build\dependencies\boundary-first-flattening\libbff.a">
+      <Link>libbff.a</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Wrappers\" />

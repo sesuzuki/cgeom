@@ -12,5 +12,5 @@
 
 namespace CGeom
 {
-    CGEOM_BFF_API void cgeomOpenSurfaceWithoutHolesBFF(const int numVertices, const int numFaces, const double *inCoords, const int *inFaces, int *outNumUV, double **outUV, int *outNumFaces, int **outFaces, const char **errorMessage);
+    CGEOM_BFF_API void cgeomOpenSurfaceWithoutHolesToDisk(const int numVertices, const int numFaces, const double *inCoords, const int *inFaces, int *outNumUV, double **outUV, int *outNumFaces, int **outFaces, const char **errorMessage);
 }

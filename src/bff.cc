@@ -13,8 +13,8 @@ extern "C"
 namespace CGeom
 {
     // Current implementation only works for open surfaces with one boundary
-    CGEOM_BFF_API void cgeomOpenSurfaceWithoutHolesBFF(const int numVertices, const int numFaces, const double *inCoords, const int *inFaces, int *outNumUV, double **outUV, int *outNumFaces, int **outFaces, const char **errorMessage)    {
-        try
+    CGEOM_BFF_API void cgeomOpenSurfaceWithoutHolesToDisk(const int numVertices, const int numFaces, const double *inCoords, const int *inFaces, int *outNumUV, double **outUV, int *outNumFaces, int **outFaces, const char **errorMessage)    {
+ try
         {
             bff::PolygonSoup soup;
             std::vector<std::pair<int, int>> uncuttableEdges;
@@ -28,7 +28,8 @@ namespace CGeom
             }
 
             bff::Model model;
-            bff::MeshIO::buildModel(uncuttableEdges, soup, model, error);
+            std::string errorMsg;
+            bff::MeshIO::buildModel(uncuttableEdges, soup, model, errorMsg);
 
             // Initialize BFF
             std::vector<uint8_t> isSurfaceMappedToSphere;
@@ -88,11 +89,10 @@ namespace CGeom
             auto cF = *outNumFaces * sizeof(int);
             *outFaces = static_cast<int *>(malloc(cF));
             std::memcpy(*outFaces, outFaceIndices.data(), cF);
-
-            *errorMessage  = "Success";
+            *errorMessage = "Success";
 
         } catch(...) {
-            *errorMessage  = "Error in bff";
+            *errorMessage = "Error in cgeomBFF";
         }
     }
 }

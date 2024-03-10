@@ -31,6 +31,12 @@ find_package(OpenMesh REQUIRED)
 add_subdirectory(dependencies/libQEx)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/libQEx/interfaces/c)
 
+# BFF
+option(BFF_BUILD_CLI  "Build BFF command line" OFF)
+option(BFF_BUILD_GUI  "Build BFF GUI"          OFF)
+add_subdirectory(dependencies/boundary-first-flattening)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/boundary-first-flattening/include)
+
 ################################################################################
 # Library
 ################################################################################
