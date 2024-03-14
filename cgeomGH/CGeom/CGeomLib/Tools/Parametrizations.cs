@@ -139,12 +139,12 @@ namespace CGeom.Tools
             mesh2D.Scale(scaleFactor);
         }
 
-        public static void CreateCheckerboardOnDisk(Mesh disk, Mesh initialMesh, int uCount, int vCount, double angle, double length, out Curve[][] crvOnDisk, out Curve[][] crvOnMesh3d)
+        public static void CreateCheckerboardOnDisk(Mesh disk, Mesh initialMesh, int uCount, int vCount, double angle, bool diagonalize, out Curve[][] crvOnDisk, out Curve[][] crvOnMesh3d)
         {
             // Create texture on disk
+            var crv = disk.GetNakedEdges()[0].ToNurbsCurve();
             Circle circle;
             Circle.TryFitCircleToPoints(disk.GetNakedEdges()[0], out circle);
-            var crv = circle.ToNurbsCurve();
 
             var dom = new Interval(-circle.Radius, circle.Radius);
             var pl = circle.Plane;
@@ -154,52 +154,104 @@ namespace CGeom.Tools
             double vStep = dom.Length / (vCount - 1);
             List<PolylineCurve> polyA = new List<PolylineCurve>();
             List<PolylineCurve> polyB = new List<PolylineCurve>();
+            double tol = 1e-6;
+            double minSegLength = 0.01;
 
-            for (int i = 0; i < uCount; i++)
+            if (diagonalize)
             {
-                for (int j = 0; j < vCount; j++)
+                for (int i = 0; i < uCount - 1; i++)
                 {
-
-                    if (i > 0 && i < uCount - 1 && j < vCount - 1)
+                    double x0 = dom.T0 + uStep * i;
+                    double x1 = dom.T0 + uStep * (i + 1);
+                    for (int j = 0; j < vCount - 1; j++)
                     {
-                        Point3d p0 = pl.PointAt(dom.T0 + uStep * i, dom.T0 + vStep * j, 0);
-                        Point3d p1 = pl.PointAt(dom.T0 + uStep * i, dom.T0 + vStep * (j + 1), 0);
-                        var e = new LineCurve(p0, p1);
+                        double y0 = dom.T0 + vStep * j;
+                        double y1 = dom.T0 + vStep * (j + 1);
 
-                        var inter = Intersection.CurveCurve(crv, e, 1e-6, 1e-6);
+                        Point3d p0 = pl.PointAt(x0, y0, 0);
+                        Point3d p1 = pl.PointAt(x0, y1, 0);
+                        Point3d p2 = pl.PointAt(x1, y1, 0);
+                        Point3d p3 = pl.PointAt(x1, y0, 0);
+                        Point3d center = (p0 + p1 + p2 + p3) / 4;
 
-                        if (inter.Count == 1)
+                        LineCurve[] edgesA = new LineCurve[] { new LineCurve(p0, center), new LineCurve(center, p2) };
+                        LineCurve[] edgesB = new LineCurve[] { new LineCurve(p1, center), new LineCurve(center, p3) };
+
+                        for (int k = 0; k < 2; k++)
                         {
-                            e = new LineCurve(crv.Contains(p0, pl, 1e-3) == PointContainment.Inside ? p0 : inter[0].PointA, crv.Contains(p0, pl, 1e-3) == PointContainment.Inside ? inter[0].PointA : p1);
-                            int count = (int)(e.GetLength() / length);
-                            polyA.Add(new PolylineCurve(e.DivideByCount(count == 0 ? 1 : count, true).Select(t => e.PointAt(t)).ToArray()));
-                        }
-                        else if (crv.Contains(p0, pl, 1e-3) == PointContainment.Inside && crv.Contains(p1, pl, 1e-3) == PointContainment.Inside)
-                        {
-                            e = new LineCurve(p0, p1);
-                            int count = (int)(e.GetLength() / length);
-                            polyA.Add(new PolylineCurve(e.DivideByCount(count == 0 ? 1 : count, true).Select(t => e.PointAt(t)).ToArray()));
+                            // Family A
+                            var e = edgesA[k];
+                            var inter = Intersection.CurveCurve(crv, e, 1e-6, 1e-6);
+
+                            if (inter.Count == 1)
+                            {
+                                e = new LineCurve(crv.Contains(e.PointAtStart, pl, tol) == PointContainment.Inside ? e.PointAtStart : inter[0].PointA, crv.Contains(e.PointAtStart, pl, tol) == PointContainment.Inside ? inter[0].PointA : e.PointAtEnd);
+                                polyA.Add(new PolylineCurve(e.GetLength()<=minSegLength ? new Point3d[]{ e.PointAtStart, e.PointAtEnd} : e.DivideByCount((int)Math.Ceiling(e.GetLength()/minSegLength), true).Select(t => e.PointAt(t))));
+                            }
+                            if (crv.Contains(e.PointAtStart, pl, tol) == PointContainment.Inside && crv.Contains(e.PointAtEnd, pl, tol) == PointContainment.Inside)
+                            {
+                                polyA.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
+
+                            // Family B
+                            e = edgesB[k];
+                            inter = Intersection.CurveCurve(crv, e, 1e-6, 1e-6);
+
+                            if (inter.Count == 1)
+                            {
+                                e = new LineCurve(crv.Contains(e.PointAtStart, pl, tol) == PointContainment.Inside ? e.PointAtStart : inter[0].PointA, crv.Contains(e.PointAtStart, pl, tol) == PointContainment.Inside ? inter[0].PointA : e.PointAtEnd);
+                                polyB.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
+                            if (crv.Contains(e.PointAtStart, pl, tol) == PointContainment.Inside && crv.Contains(e.PointAtEnd, pl, tol) == PointContainment.Inside)
+                            {
+                                polyB.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
                         }
                     }
-
-                    if (i < uCount - 1 && j > 0 && j < vCount - 1)
+                }
+            }
+            else
+            {
+                for (int i = 0; i < uCount; i++)
+                {
+                    for (int j = 0; j < vCount; j++)
                     {
-                        Point3d p0 = pl.PointAt(dom.T0 + uStep * i, dom.T0 + vStep * j, 0);
-                        Point3d p1 = pl.PointAt(dom.T0 + uStep * (i + 1), dom.T0 + vStep * j, 0);
-                        var e = new LineCurve(p0, p1);
-                        var inter = Intersection.CurveCurve(crv, e, 1e-6, 1e-6);
 
-                        if (inter.Count == 1)
+                        if (i > 0 && i < uCount - 1 && j < vCount - 1)
                         {
-                            e = new LineCurve(crv.Contains(p0, pl, 1e-3) == PointContainment.Inside ? p0 : inter[0].PointA, crv.Contains(p0, pl, 1e-3) == PointContainment.Inside ? inter[0].PointA : p1);
-                            int count = (int)(e.GetLength() / length);
-                            polyB.Add(new PolylineCurve(e.DivideByCount(count == 0 ? 1 : count, true).Select(t => e.PointAt(t)).ToArray()));
+                            Point3d p0 = pl.PointAt(dom.T0 + uStep * i, dom.T0 + vStep * j, 0);
+                            Point3d p1 = pl.PointAt(dom.T0 + uStep * i, dom.T0 + vStep * (j + 1), 0);
+                            var e = new LineCurve(p0, p1);
+
+                            var inter = Intersection.CurveCurve(crv, e, 1e-6, 1e-6);
+
+                            if (inter.Count == 1)
+                            {
+                                e = new LineCurve(crv.Contains(p0, pl, tol) == PointContainment.Inside ? p0 : inter[0].PointA, crv.Contains(p0, pl, tol) == PointContainment.Inside ? inter[0].PointA : p1);
+                                polyA.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
+                            else if (crv.Contains(p0, pl, tol) == PointContainment.Inside && crv.Contains(p1, pl, tol) == PointContainment.Inside)
+                            {
+                                polyA.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
                         }
-                        else if (crv.Contains(p0, pl, 1e-3) == PointContainment.Inside && crv.Contains(p1, pl, 1e-3) == PointContainment.Inside)
+
+                        if (i < uCount - 1 && j > 0 && j < vCount - 1)
                         {
-                            e = new LineCurve(p0, p1);
-                            int count = (int)(e.GetLength() / length);
-                            polyB.Add(new PolylineCurve(e.DivideByCount(count == 0 ? 1 : count, true).Select(t => e.PointAt(t)).ToArray()));
+                            Point3d p0 = pl.PointAt(dom.T0 + uStep * i, dom.T0 + vStep * j, 0);
+                            Point3d p1 = pl.PointAt(dom.T0 + uStep * (i + 1), dom.T0 + vStep * j, 0);
+                            var e = new LineCurve(p0, p1);
+                            var inter = Intersection.CurveCurve(crv, e, 1e-6, 1e-6);
+
+                            if (inter.Count == 1)
+                            {
+                                e = new LineCurve(crv.Contains(p0, pl, tol) == PointContainment.Inside ? p0 : inter[0].PointA, crv.Contains(p0, pl, tol) == PointContainment.Inside ? inter[0].PointA : p1);
+                                polyB.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
+                            else if (crv.Contains(p0, pl, tol) == PointContainment.Inside && crv.Contains(p1, pl, tol) == PointContainment.Inside)
+                            {
+                                polyB.Add(new PolylineCurve(e.GetLength() <= minSegLength ? new Point3d[] { e.PointAtStart, e.PointAtEnd } : e.DivideByCount((int)Math.Ceiling(e.GetLength() / minSegLength), true).Select(t => e.PointAt(t))));
+                            }
                         }
                     }
                 }
@@ -225,6 +277,7 @@ namespace CGeom.Tools
                     foreach (Point3d p in poly) tempP.Add(initialMesh.PointAt(disk.ClosestMeshPoint(p, 0.0)));
 
                     crvOnMesh3d[i][j] = new PolylineCurve(tempP);
+                    //crvOnMesh3d[i][j] = Curve.CreateInterpolatedCurve(tempP, 3);
                 }
             }
         }

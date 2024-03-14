@@ -4,11 +4,15 @@ using Rhino.Geometry;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using Rhino.Render.CustomRenderMeshes;
+using Rhino.Geometry.Intersect;
 
 namespace CGeom.Tools
 {
     public static class Processing
     {
+        public enum ForceFieldTypes { Gaussian, InverseDistances }
+
         public static void LaplacianSmoothingForOpenMesh(int numIterations, ref Mesh mesh, IEnumerable<Point3d> anchors, double tolerance = 1e-3)
         {
             // Parse mesh data
@@ -153,6 +157,83 @@ namespace CGeom.Tools
             {
                 string errorMsg = Marshal.PtrToStringAnsi(outErrorMsg);
                 throw new Exception(errorMsg);
+            }
+        }
+
+        public static void RepulsivePointsWithGaussianPotentials(IEnumerable<Point3d> pts, IEnumerable<Point3d> fixedPoints, double A, double sigma, out Point3d[] positions, out Vector3d[] forces, out double[] potentials, double dt= 1.0, int numIterations=100)
+        {
+            // A is a scaling factor determining the strength of the interaction.
+            // sigma is the width parameter controlling the range of the interaction
+
+            int numPts = pts.Count();
+            int numFixed = fixedPoints.Count();
+            positions = new Point3d[numPts];
+            forces = new Vector3d[numPts];
+            potentials = new double[numPts];
+
+            for (int i=0; i<numPts; i++)
+            {
+                var p = pts.ElementAt(i);
+                var f = new Vector3d(0, 0, 0);
+                double pot = 0;
+                for (int j=0; j<numFixed; j++)
+                {
+                    var pf = fixedPoints.ElementAt(j);
+                    // gradient 
+                    double dist = p.DistanceTo(pf);
+                    Vector3d gradient = A * (p - pf) * Math.Exp(-Math.Pow(dist, 2) / (2 * Math.Pow(sigma, 2))) / Math.Pow(sigma, 2);
+                    // Force is the negative gradient of the potential
+                    f -= gradient;
+
+                    double distanceSq = Math.Pow(p.DistanceTo(pf), 2);
+                    pot += A * Math.Exp(-distanceSq / (2 * Math.Pow(sigma, 2)));
+                }
+
+                positions[i] = p;
+                forces[i] = f;
+                potentials[i] = pot;
+            }
+
+            // Euler integration to update positions
+            for (int iter = 0; iter < numIterations; iter++)
+            {
+                for (int i = 0; i < numPts; i++) positions[i] += forces[i] * dt;
+            }
+        }
+
+        public static void RepulsivePointsWithInverseDistances(IEnumerable<Point3d> pts, IEnumerable<Point3d> fixedPoints, double A, out Point3d[] positions, out Vector3d[] forces, out double[] potentials, double dt = 1.0, int numIterations = 100)
+        {
+            // A is a scaling factor determining the strength of the interaction.
+
+            int numPts = pts.Count();
+            int numFixed = fixedPoints.Count();
+            positions = new Point3d[numPts];
+            forces = new Vector3d[numPts];
+            potentials = new double[numPts];
+
+            for (int i = 0; i < numPts; i++)
+            {
+                var p = pts.ElementAt(i);
+                var direction = new Vector3d(0, 0, 0);
+                double distanceSq = 0;
+                for (int j = 0; j < numFixed; j++)
+                {
+                    var pf = fixedPoints.ElementAt(j);
+
+                    var dist = p.DistanceTo(pf);
+                    direction += (p - pf) / Math.Sqrt(Math.Pow(dist, 2));
+                    distanceSq += Math.Pow(dist, 2);
+                }
+
+                positions[i] = p;
+                potentials[i] = A * 1 / Math.Sqrt(distanceSq);
+                forces[i] = direction * potentials[i];
+            }
+
+            // Euler integration to update positions
+            for (int iter = 0; iter < numIterations; iter++)
+            {
+                for (int i = 0; i < numPts; i++) positions[i] += forces[i] * dt;
             }
         }
     }

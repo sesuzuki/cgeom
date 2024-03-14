@@ -36,7 +36,7 @@ namespace CGeomGH.ParametrizationGH
             pManager.AddIntegerParameter("uCount", "uCount", "Number of u coordinates", GH_ParamAccess.item, 10);
             pManager.AddIntegerParameter("vCount", "vCount", "Number of v coordinates", GH_ParamAccess.item, 10);
             pManager.AddNumberParameter("Angle", "Angle", "Rotation angle in radians", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Tol", "Tol", "The distance between each sampling point that is used to generate the checkerboard pattern.", GH_ParamAccess.item, 1e-3);
+            pManager.AddBooleanParameter("Diagonalize", "Diagonalize", "Diagonalize the checkerboard pattern", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
@@ -61,19 +61,20 @@ namespace CGeomGH.ParametrizationGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = null;
-            double scaleFactor = 1.0, angle = 0, length = 1e-3;
-            int uCount = 10, vCount = 10; 
+            double scaleFactor = 1.0, angle = 0;
+            int uCount = 10, vCount = 10;
+            bool diag = false;
             DA.GetData(0, ref m);
             DA.GetData(1, ref uCount);
             DA.GetData(2, ref vCount);
             DA.GetData(3, ref angle);
-            DA.GetData(4, ref length);
+            DA.GetData(4, ref diag);
 
             Mesh mesh3D, disk;
             Parametrizations.HarmonicParametrization(m, scaleFactor, out mesh3D, out disk);
 
             Curve[][] crvOnDisk, crvOnMesh3d;
-            Parametrizations.CreateCheckerboardOnDisk(disk, m, uCount, vCount, angle, length, out crvOnDisk, out crvOnMesh3d);
+            Parametrizations.CreateCheckerboardOnDisk(disk, m, uCount, vCount, angle, diag, out crvOnDisk, out crvOnMesh3d);
             GH_Structure<GH_Curve> texture2D = new GH_Structure<GH_Curve>();
 
             texture2D.AppendRange(crvOnDisk[0].Select(c => new GH_Curve(c)), new GH_Path(0));
