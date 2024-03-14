@@ -38,7 +38,6 @@ ninja
 ```
 
 ## Building C# Plugin MacOs
-The C# plugin is compatible only with Rhino 7 and 8 for Mac with Intel processors, as well as Rhino 8 with ARM processors.
 
 ### Visual Studio for Mac (if not installed)
 Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/mac/)
