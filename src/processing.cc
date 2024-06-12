@@ -34,6 +34,10 @@
 #include <igl/harmonic.h>
 #include <igl/map_vertices_to_circle.h>
 #include <igl/lscm.h>
+#include "geometrycentral/surface/flip_geodesics.h"
+#include "geometrycentral/surface/meshio.h"
+#include "geometrycentral/surface/surface_mesh_factories.h"
+#include "geometrycentral/utilities/vector3.h"
 
 
 extern "C"
@@ -43,6 +47,72 @@ extern "C"
 
 namespace CGeom
 {
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // Geometry Central
+    /////////////////////////////////////////////////////////////////////////////////////////
+
+    CGEOM_PARAM_API void cgeomGetFlipGeodesics(int numVertices, int numFaces, int numPointOffsets, double *inCoords, int *inFaces, int *inPtsIndices, int *inPointOffset, double **outPointCoords, int **outPointOffsets, size_t *outNumCoords, size_t *outNumOffsets){
+        // Build mesh
+        Eigen::MatrixXd V = Eigen::Map<Eigen::MatrixXd>(inCoords,numVertices, 3);
+        Eigen::MatrixXi F = Eigen::Map<Eigen::MatrixXi>(inFaces, numFaces, 3);
+
+        // construct geometry-central mesh types
+        std::unique_ptr<geometrycentral::surface::ManifoldSurfaceMesh> mesh;
+        std::unique_ptr<geometrycentral::surface::VertexPositionGeometry> geometry;
+        std::tie(mesh, geometry) = geometrycentral::surface::makeManifoldSurfaceMeshAndGeometry(V, F);
+
+        // Create a path network as a Dijkstra path between endpoints
+        int startOff=0;
+        std::unique_ptr<geometrycentral::surface::FlipEdgeNetwork> edgeNetwork;
+        std::vector<double> outCoords;
+        std::vector<int> outOffsets;
+        int offsetPoints = 0;
+        bool closed = false;
+        for (int i = 0; i < numPointOffsets; i++)
+        {
+            int endOff = inPointOffset[i];
+            int numGeoPts = (endOff - startOff);
+            std::vector<geometrycentral::surface::Vertex> points;
+            for (int j = 0; j < numGeoPts; j++) points.emplace_back(mesh->vertex(inPtsIndices[startOff + j]));
+            startOff = endOff;
+
+            edgeNetwork = geometrycentral::surface::FlipEdgeNetwork::constructFromPiecewiseDijkstraPath(*mesh, *geometry, points, closed);
+
+            // Make the path a geodesic
+            edgeNetwork->iterativeShorten();
+
+            // Extract the result as a polyline along the surface
+            edgeNetwork->posGeom = geometry.get();
+            std::vector<std::vector<geometrycentral::Vector3>> polyline = edgeNetwork->getPathPolyline3D();
+
+            for (size_t i = 0; i < polyline.size(); i++)
+            {
+                auto poly = polyline[i];
+                for (size_t j = 0; j < poly.size(); j++)
+                {
+                    auto v = poly[j];
+                    outCoords.push_back(v.x);
+                    outCoords.push_back(v.y);
+                    outCoords.push_back(v.z);
+                    offsetPoints += 3;
+                }
+            }
+            outOffsets.push_back(offsetPoints);
+
+            //edgeNetwork->rewind();
+        }
+        
+        *outNumCoords = outCoords.size();
+        auto sizeCoords = (*outNumCoords) * sizeof(double);
+        *outPointCoords = static_cast<double *>(malloc(sizeCoords));
+        std::memcpy(*outPointCoords, outCoords.data(), sizeCoords);
+
+        *outNumOffsets = outOffsets.size();
+        auto sizeOffsets = outOffsets.size() * sizeof(int);
+        *outPointOffsets = static_cast<int *>(malloc(sizeOffsets));
+        std::memcpy(*outPointOffsets, outOffsets.data(), sizeOffsets);
+    }
 
     CGEOM_PARAM_API void cgeomParseMatrixXd(const Eigen::MatrixXd m, double **outData, size_t *outCount){
         *outCount = m.size();

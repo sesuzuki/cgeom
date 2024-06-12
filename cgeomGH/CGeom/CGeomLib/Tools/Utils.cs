@@ -285,7 +285,7 @@ namespace CGeom.Tools
         /// <param name="data"> Multidimensional array. </param>
         /// <param name="order"> Storage order. </param>
         /// <returns></returns>
-        public static int[,] ParseDoubleArrToMatrixXi(int[] data, int column = 3, StorageOrder order = StorageOrder.ColumnMajor)
+        public static int[,] ParseIntegerArrToMatrixXi(int[] data, int column = 3, StorageOrder order = StorageOrder.ColumnMajor)
         {
             int row = data.Length / column;
 
@@ -412,7 +412,7 @@ namespace CGeom.Tools
         public static MeshFace[] ParsePointerToMeshFaceArr(IntPtr ptr, int count, StorageOrder order = StorageOrder.ColumnMajor)
         {
             // Marshal flat list of vector components
-            int[,] data = ParseDoubleArrToMatrixXi(ParsePointerToIntArr(ptr, count), 3, order);
+            int[,] data = ParseIntegerArrToMatrixXi(ParsePointerToIntArr(ptr, count), 3, order);
 
             // Matrix data to meshface
             MeshFace[] faces = new MeshFace[data.GetLength(0)];

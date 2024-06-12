@@ -8,6 +8,8 @@ project(cgeom)
 
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/libcgeom)
+################################################################################
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dependencies)
 
 # CMake plugin for vscode
 include(CMakeToolsHelpers OPTIONAL)
@@ -23,19 +25,23 @@ option(LIBIGL_WITH_COMISO            "Use CoMiso"         ON)
 include(libigl)
 
 # Open Mesh 3.0 required for libQEx
-add_subdirectory(dependencies/OpenMesh)
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/OpenMesh/src)
+add_subdirectory(${THIRD_PARTY_DIR}/OpenMesh)
+include_directories(${THIRD_PARTY_DIR}/OpenMesh/src)
 
 # libQEx
 find_package(OpenMesh REQUIRED)
-add_subdirectory(dependencies/libQEx)
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/libQEx/interfaces/c)
+add_subdirectory(${THIRD_PARTY_DIR}/libQEx)
+include_directories(${THIRD_PARTY_DIR}/libQEx/interfaces/c)
 
 # BFF
 option(BFF_BUILD_CLI  "Build BFF command line" OFF)
 option(BFF_BUILD_GUI  "Build BFF GUI"          OFF)
-add_subdirectory(dependencies/boundary-first-flattening)
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/boundary-first-flattening/include)
+add_subdirectory(${THIRD_PARTY_DIR}/boundary-first-flattening)
+include_directories(${THIRD_PARTY_DIR}/boundary-first-flattening/include)
+
+# Geometry central
+add_subdirectory(${THIRD_PARTY_DIR}/geometry-central)
+include_directories(${THIRD_PARTY_DIR}/geometry-central/include)
 
 ################################################################################
 # Library

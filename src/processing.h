@@ -12,6 +12,16 @@
 
 namespace CGeom
 {
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // Geometry Central
+    /////////////////////////////////////////////////////////////////////////////////////////
+
+    CGEOM_PARAM_API void cgeomGetFlipGeodesics(int numVertices, int numFaces, int numPointOffsets, double *inCoords, int *inFaces, int *inPtsIndices, int *inPointOffset, double **outPointCoords, int **outPointOffsets, size_t *outNumCoords, size_t *outNumOffsets);
+
+     /////////////////////////////////////////////////////////////////////////////////////////
+    // UmbrellaMesh
+    /////////////////////////////////////////////////////////////////////////////////////////
+
     CGEOM_PARAM_API void cgeomParseMatrixXd(const Eigen::MatrixXd m, double **outData, size_t *outCount);
 
     CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXd m, int **outData, size_t *outCount);

@@ -7,3 +7,6 @@
 [submodule "dependencies/boundary-first-flattening"]
 	path = dependencies/boundary-first-flattening
 	url = https://github.com/GeometryCollective/boundary-first-flattening.git
+[submodule "dependencies/geometry-central"]
+	path = dependencies/geometry-central
+	url = https://github.com/nmwsharp/geometry-central.git

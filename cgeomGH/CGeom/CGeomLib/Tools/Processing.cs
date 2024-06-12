@@ -6,12 +6,69 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using Rhino.Render.CustomRenderMeshes;
 using Rhino.Geometry.Intersect;
+using static Rhino.Render.CustomRenderMeshes.RenderMeshProvider;
 
 namespace CGeom.Tools
 {
     public static class Processing
     {
         public enum ForceFieldTypes { Gaussian, InverseDistances }
+
+        public static Polyline[] FlipGeodesics(Mesh mesh, IEnumerable<Curve> polylines)
+        {
+            // Parse mesh data
+            double[] coords;
+            int[] faces;
+            int numVertices, numFaces;
+            Mesh copy = mesh.DuplicateMesh();
+            PointCloud cloud = new PointCloud(copy.Vertices.ToPoint3dArray());
+            Utils.ParseTriangleRhinoMesh(copy, out coords, out faces, out numVertices, out numFaces);
+
+            IntPtr outPointCoords, outPointOffsets;
+            int outNumCoords, outNumOffsets;
+
+            int numPointOffsets = polylines.Count();
+            int[] inPointOffsets = new int[numPointOffsets];
+            List<int> inPtsIndices = new List<int>();
+            int offset = 0;
+
+            for (int i = 0; i < numPointOffsets; i++)
+            {
+                Polyline poly;
+                bool flag = polylines.ElementAt(i).TryGetPolyline(out poly);
+                if (!flag) throw new Exception("Input curve should be a polyline");
+
+                foreach (var p in poly) inPtsIndices.Add(cloud.ClosestPoint(p));
+                offset += poly.Count;
+
+                inPointOffsets[i] = offset;
+            }
+
+            Kernel.GeometryCentral.CgeomGetFlipGeodesics(numVertices, numFaces, numPointOffsets, coords, faces, inPtsIndices.ToArray(), inPointOffsets, out outPointCoords, out outPointOffsets, out outNumCoords, out outNumOffsets);
+
+            double[] outCoords = new double[outNumCoords];
+            Marshal.Copy(outPointCoords, outCoords, 0, outNumCoords);
+            Marshal.FreeCoTaskMem(outPointCoords);
+
+            int[] outOffsets = new int[outNumOffsets];
+            Marshal.Copy(outPointOffsets, outOffsets, 0, outNumOffsets);
+            Marshal.FreeCoTaskMem(outPointOffsets);
+
+            Polyline[] geodesics = new Polyline[outNumOffsets];
+            int startOffset = 0, endOffset;
+            for (int i = 0; i < outNumOffsets; i++)
+            {
+                endOffset = outOffsets[i];
+                int numPts = (int)(endOffset - startOffset) / 3;
+
+                Point3d[] pts = new Point3d[numPts];
+                for (int j = 0; j < numPts; j++) pts[j] = new Point3d(outCoords[startOffset + j * 3], outCoords[startOffset + j * 3 + 1], outCoords[startOffset + j * 3 + 2]);
+                geodesics[i] = new Polyline(pts);
+                startOffset = endOffset;
+            }
+
+            return geodesics;
+        }
 
         public static void LaplacianSmoothingForOpenMesh(int numIterations, ref Mesh mesh, IEnumerable<Point3d> anchors, double tolerance = 1e-3)
         {
@@ -160,7 +217,7 @@ namespace CGeom.Tools
             }
         }
 
-        public static void RepulsivePointsWithGaussianPotentials(IEnumerable<Point3d> pts, IEnumerable<Point3d> fixedPoints, double A, double sigma, out Point3d[] positions, out Vector3d[] forces, out double[] potentials, double dt= 1.0, int numIterations=100)
+        public static void RepulsivePointsWithGaussianPotentials(IEnumerable<Point3d> pts, IEnumerable<Point3d> fixedPoints, IEnumerable<double> AList, IEnumerable<double> sigmaList, out Point3d[] positions, out Vector3d[] forces, out double[] potentials, double dt= 1.0, int numIterations=100)
         {
             // A is a scaling factor determining the strength of the interaction.
             // sigma is the width parameter controlling the range of the interaction
@@ -170,6 +227,8 @@ namespace CGeom.Tools
             positions = new Point3d[numPts];
             forces = new Vector3d[numPts];
             potentials = new double[numPts];
+            bool flagA = AList.Count() == numFixed ? true : false;
+            bool flagSigma = sigmaList.Count() == numFixed ? true : false;
 
             for (int i=0; i<numPts; i++)
             {
@@ -179,6 +238,9 @@ namespace CGeom.Tools
                 for (int j=0; j<numFixed; j++)
                 {
                     var pf = fixedPoints.ElementAt(j);
+                    double A = flagA ? AList.ElementAt(j) : AList.ElementAt(0);
+                    double sigma = flagSigma ? sigmaList.ElementAt(j) : sigmaList.ElementAt(0);
+
                     // gradient 
                     double dist = p.DistanceTo(pf);
                     Vector3d gradient = A * (p - pf) * Math.Exp(-Math.Pow(dist, 2) / (2 * Math.Pow(sigma, 2))) / Math.Pow(sigma, 2);
@@ -201,7 +263,7 @@ namespace CGeom.Tools
             }
         }
 
-        public static void RepulsivePointsWithInverseDistances(IEnumerable<Point3d> pts, IEnumerable<Point3d> fixedPoints, double A, out Point3d[] positions, out Vector3d[] forces, out double[] potentials, double dt = 1.0, int numIterations = 100)
+        public static void RepulsivePointsWithInverseDistances(IEnumerable<Point3d> pts, IEnumerable<Point3d> fixedPoints, IEnumerable<double> AList, out Point3d[] positions, out Vector3d[] forces, out double[] potentials, double dt = 1.0, int numIterations = 100)
         {
             // A is a scaling factor determining the strength of the interaction.
 
@@ -210,6 +272,7 @@ namespace CGeom.Tools
             positions = new Point3d[numPts];
             forces = new Vector3d[numPts];
             potentials = new double[numPts];
+            bool flagA = AList.Count() == numFixed ? true : false;
 
             for (int i = 0; i < numPts; i++)
             {
@@ -218,15 +281,16 @@ namespace CGeom.Tools
                 double distanceSq = 0;
                 for (int j = 0; j < numFixed; j++)
                 {
+                    double A = flagA ? AList.ElementAt(j) : AList.ElementAt(0);
                     var pf = fixedPoints.ElementAt(j);
 
                     var dist = p.DistanceTo(pf);
                     direction += (p - pf) / Math.Sqrt(Math.Pow(dist, 2));
-                    distanceSq += Math.Pow(dist, 2);
+                    distanceSq += A * Math.Pow(dist, 2);
                 }
 
                 positions[i] = p;
-                potentials[i] = A * 1 / Math.Sqrt(distanceSq);
+                potentials[i] = 1 / Math.Sqrt(distanceSq);
                 forces[i] = direction * potentials[i];
             }
 

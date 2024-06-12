@@ -77,10 +77,14 @@ namespace CGeomGH.ProcessingGH
         {
             pManager.AddPointParameter("Pts", "Pts", "Points where forces are going to be exerted.", GH_ParamAccess.list);
             pManager.AddPointParameter("Fixed", "Fixed", "Points to be converted into repulsive points.", GH_ParamAccess.list);
-            pManager.AddNumberParameter("A", "A", "Scaling factor determining the strength of the interaction.", GH_ParamAccess.item, 1.0);
-            pManager.AddNumberParameter("Sigma", "Sigma", "Sigma is the width parameter controlling the range of the interaction (only used for Gaussian potentials).", GH_ParamAccess.item, 0.5);
+            pManager.AddNumberParameter("A", "A", "Scaling factor determining the strength of the interaction.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Sigma", "Sigma", "Sigma is the width parameter controlling the range of the interaction (only used for Gaussian potentials).", GH_ParamAccess.list);
             pManager.AddNumberParameter("dt", "dt", "Time step for integrating forces.", GH_ParamAccess.item, 1.0);
             pManager.AddIntegerParameter("Iter", "Iter", "Number of iterations for integrating forces.", GH_ParamAccess.item, 100);
+            pManager[2].Optional = true;
+            pManager[3].Optional = true;
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
         }
 
         /// <summary>
@@ -102,12 +106,14 @@ namespace CGeomGH.ProcessingGH
         {
             List<Point3d> pts = new List<Point3d>();
             List<Point3d> fixedPts = new List<Point3d>();
-            double dt = 1, A = 1, sigma = 0.5;
+            double dt = 1;
+            List<double> A = new List<double>();
+            List<double> sigma = new List<double>();
             int numIter = 100;
             DA.GetDataList(0, pts);
             DA.GetDataList(1, fixedPts);
-            DA.GetData(2, ref A);
-            DA.GetData(3, ref sigma);
+            DA.GetDataList(2, A);
+            DA.GetDataList(3, sigma);
             DA.GetData(4, ref dt);
             DA.GetData(5, ref numIter);
 

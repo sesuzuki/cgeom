@@ -69,6 +69,7 @@
     <Compile Include="Utils\MetricsVisualization.cs" />
     <Compile Include="Wrappers\Kernel.BFF.cs" />
     <Compile Include="Tools\Bff.cs" />
+    <Compile Include="Wrappers\Kernel.GeometryCentral.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\bin\libcgeom\libcgeom.dylib">
