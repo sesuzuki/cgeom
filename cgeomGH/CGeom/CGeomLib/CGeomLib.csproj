@@ -22,7 +22,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\bin</OutputPath>
+    <OutputPath>..\..\..\bin\cgeomGH\</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -71,7 +71,7 @@
     <Compile Include="Tools\Bff.cs" />
     <Compile Include="Wrappers\Kernel.GeometryCentral.cs" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <None Include="..\..\..\bin\libcgeom\libcgeom.dylib">
       <Link>libcgeom.dylib</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -92,6 +92,24 @@
     <None Include="..\..\..\build\dependencies\boundary-first-flattening\libbff.a">
       <Link>libbff.a</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <None Include="..\..\..\bin\libcgeom\cgeom.dll" Condition="Exists('..\..\..\bin\libcgeom\cgeom.dll')">
+      <Link>cgeom.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\OpenMeshCored.dll" Condition="Exists('..\..\..\bin\libcgeom\OpenMeshCored.dll')">
+      <Link>OpenMeshCored.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\OpenMeshToolsd.dll" Condition="Exists('..\..\..\bin\libcgeom\OpenMeshToolsd.dll')">
+      <Link>OpenMeshToolsd.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\QEx.dll" Condition="Exists('..\..\..\bin\libcgeom\QEx.dll')">
+      <Link>QEx.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

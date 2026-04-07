@@ -53,12 +53,16 @@
 #include <directional/setup_mesher.h>
 #include <directional/mesher.h>
 #include <signal.h>
-#include <setjmp.h>
 #include "instant_meshes_wrapper.h"
+
+#if !defined(_WIN32)
+#include <setjmp.h>
+#endif
 
 // Thread-local escape hatch so that assert()→abort() inside the Directional
 // exact-arithmetic mesher (a submodule we cannot modify) gets converted into
 // a std::runtime_error that the caller's try/catch can handle.
+#if !defined(_WIN32)
 static thread_local sigjmp_buf  s_mesherJmpBuf;
 static thread_local volatile sig_atomic_t s_mesherActive = 0;
 
@@ -72,6 +76,7 @@ static void mesherAbortHandler(int)
     signal(SIGABRT, SIG_DFL);
     raise(SIGABRT);
 }
+#endif
 
 extern "C"
 {
@@ -827,6 +832,7 @@ namespace CGeom
             // Guard with SIGABRT handler: effort_to_indices inside principal_matching
             // asserts that indices are integer — can still fire for numerically marginal fields.
             {
+#if !defined(_WIN32)
                 auto* pmHandler = signal(SIGABRT, mesherAbortHandler);
                 s_mesherActive = 1;
                 if (sigsetjmp(s_mesherJmpBuf, 1) != 0) {
@@ -839,6 +845,9 @@ namespace CGeom
                 directional::principal_matching(rawField);
                 s_mesherActive = 0;
                 signal(SIGABRT, pmHandler);
+#else
+                directional::principal_matching(rawField);
+#endif
             }
 
             // =========================================================================
@@ -858,6 +867,7 @@ namespace CGeom
             // loop (setup_integration.h:315) can run forever if the singularity/cut
             // graph has a cycle with all interior valence-2 vertices.  The guard also
             // covers the integrate→mesher retry loop below.
+#if !defined(_WIN32)
             auto* prevHandler = signal(SIGABRT, mesherAbortHandler);
             s_mesherActive = 1;
             if (sigsetjmp(s_mesherJmpBuf, 1) != 0) {
@@ -867,8 +877,11 @@ namespace CGeom
                     "setup_integration failed (SIGABRT). "
                     "The field singularity configuration is degenerate on this mesh.");
             }
+#endif
             directional::setup_integration(rawField, intData, meshCut, combedField);
+#if !defined(_WIN32)
             s_mesherActive = 0;
+#endif
 
             intData.verbose=false;
             // integralSeamless must be true: the mesher requires seam-jump variables
@@ -914,17 +927,17 @@ namespace CGeom
             bool mesherOk = false;
             int successfulAttempt = -1;
 
-            // prevHandler was already set when we installed the guard before setup_integration.
-            // Re-use the same handler for the integrate→mesher retry loop.
             for (int attempt = 0; attempt < kNumCandidates && !mesherOk; ++attempt) {
                 intData.fixedValues.setConstant(kAnchorCandidates[attempt]);
 
+#if !defined(_WIN32)
                 s_mesherActive = 1;
                 if (sigsetjmp(s_mesherJmpBuf, /*savemask=*/1) != 0) {
                     // SIGABRT caught anywhere in this attempt — try next anchor.
                     s_mesherActive = 0;
                     continue;
                 }
+#endif
 
                 Eigen::MatrixXd NFunction, NCornerFunction;
                 directional::integrate(combedField, intData, meshCut, NFunction, NCornerFunction);
@@ -936,7 +949,9 @@ namespace CGeom
                 // NaN appears when integrate() receives a degenerate combed field
                 // (e.g. all-umbilic sphere where curvature directions are undefined).
                 if (!NFunction.allFinite() || !NCornerFunction.allFinite()) {
+#if !defined(_WIN32)
                     s_mesherActive = 0;
+#endif
                     continue;   // try next anchor; all will fail → error below
                 }
 
@@ -944,11 +959,15 @@ namespace CGeom
                 directional::setup_mesher(meshCut, intData, mData);
 
                 mesherOk = directional::mesher(mesh, mData, outV, outD, outF);
+#if !defined(_WIN32)
                 s_mesherActive = 0;
+#endif
                 if (mesherOk) successfulAttempt = attempt;
             }
 
+#if !defined(_WIN32)
             signal(SIGABRT, prevHandler);
+#endif
 
             if (!mesherOk) {
                 std::ostringstream msg;

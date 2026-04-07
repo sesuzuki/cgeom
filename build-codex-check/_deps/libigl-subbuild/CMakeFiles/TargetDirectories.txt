@@ -1,0 +1,3 @@
+/Users/seiichi/Code/cgeom/build-codex-check/_deps/libigl-subbuild/CMakeFiles/libigl-populate.dir
+/Users/seiichi/Code/cgeom/build-codex-check/_deps/libigl-subbuild/CMakeFiles/edit_cache.dir
+/Users/seiichi/Code/cgeom/build-codex-check/_deps/libigl-subbuild/CMakeFiles/rebuild_cache.dir

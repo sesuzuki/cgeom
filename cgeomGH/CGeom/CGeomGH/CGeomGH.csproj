@@ -14,7 +14,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>..\..\..\bin</OutputPath>
+    <OutputPath>..\..\..\bin\cgeomGH</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
@@ -58,5 +58,31 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <None Include="..\..\..\bin\libcgeom\cgeom.dll" Condition="Exists('..\..\..\bin\libcgeom\cgeom.dll')">
+      <Link>cgeom.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\OpenMeshCored.dll" Condition="Exists('..\..\..\bin\libcgeom\OpenMeshCored.dll')">
+      <Link>OpenMeshCored.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\OpenMeshToolsd.dll" Condition="Exists('..\..\..\bin\libcgeom\OpenMeshToolsd.dll')">
+      <Link>OpenMeshToolsd.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\QEx.dll" Condition="Exists('..\..\..\bin\libcgeom\QEx.dll')">
+      <Link>QEx.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\gmp.dll" Condition="Exists('..\..\..\bin\libcgeom\gmp.dll')">
+      <Link>gmp.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\bin\libcgeom\gmpxx.dll" Condition="Exists('..\..\..\bin\libcgeom\gmpxx.dll')">
+      <Link>gmpxx.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

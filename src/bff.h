@@ -6,6 +6,8 @@
 #else
 #define CGEOM_BFF_API __declspec(dllimport)
 #endif
+#elif defined(_WIN32)
+#define CGEOM_BFF_API
 #else
 #define CGEOM_BFF_API __attribute__((visibility("default")))
 #endif

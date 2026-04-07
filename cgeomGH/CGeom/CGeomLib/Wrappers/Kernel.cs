@@ -2,6 +2,8 @@
 {
     public static partial class Kernel
     {
-        private const string cgeom_dylib = "libcgeom.dylib";
+        // Let the runtime resolve the platform-specific library filename:
+        // cgeom.dll on Windows, libcgeom.dylib on macOS, libcgeom.so on Linux.
+        private const string cgeom_dylib = "cgeom";
     }
 }

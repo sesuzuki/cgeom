@@ -5,7 +5,11 @@ CGeom Pluging for Grasshopper
 
 ## Compatibility Notice:
 
-The code has been tested on Mac OS environments. Instructions for building the code on Windows will be made available soon.
+The code has been tested primarily on macOS environments.
+
+Windows support is partially wired up in the build files, but still depends on having a Windows-compatible toolchain and third-party dependencies installed, especially GMP. The native library and Grasshopper wrapper are no longer hardcoded to macOS artifacts, but the curvature-aligned remeshing path still uses a reduced safety fallback on Windows because the POSIX `sigsetjmp` recovery path is unavailable there.
+
+For a dedicated Windows walkthrough, see [BUILDING_WINDOWS.md](/Users/seiichi/Code/cgeom/BUILDING_WINDOWS.md).
 
 ## System Requirements MacOS:
 
@@ -34,6 +38,13 @@ sudo port install gmp
 **macOS (Homebrew):**
 ```bash
 brew install gmp
+```
+
+**Windows:**
+Install GMP and point CMake at it with `GMP_ROOT` or `GMP_DIR`, for example:
+
+```powershell
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DGMP_ROOT=C:\path\to\gmp
 ```
 
 ## Obtaining and Building

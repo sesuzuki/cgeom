@@ -50,4 +50,6 @@ set_target_properties(instant_meshes_lib PROPERTIES CXX_STANDARD 14 CXX_STANDARD
 set_target_properties(tbb_static PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON)
 # Suppress warnings from instant-meshes sources
 target_compile_options(instant_meshes_lib PRIVATE
-    -Wno-unused-parameter -Wno-sign-compare -Wno-deprecated-declarations)
+    $<$<CXX_COMPILER_ID:Clang,AppleClang,GNU>:-Wno-unused-parameter>
+    $<$<CXX_COMPILER_ID:Clang,AppleClang,GNU>:-Wno-sign-compare>
+    $<$<CXX_COMPILER_ID:Clang,AppleClang,GNU>:-Wno-deprecated-declarations>)
