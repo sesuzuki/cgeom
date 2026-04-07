@@ -21,8 +21,9 @@ add_definitions(-D_USE_MATH_DEFINES)
 list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # libigl
-option(LIBIGL_WITH_COMISO            "Use CoMiso"         ON)
+option(LIBIGL_COPYLEFT_COMISO "Use CoMISo" ON)
 include(libigl)
+igl_include(copyleft comiso)
 
 # Open Mesh 3.0 required for libQEx
 add_subdirectory(${THIRD_PARTY_DIR}/OpenMesh)
@@ -42,6 +43,15 @@ include_directories(${THIRD_PARTY_DIR}/boundary-first-flattening/include)
 # Geometry central
 add_subdirectory(${THIRD_PARTY_DIR}/geometry-central)
 include_directories(${THIRD_PARTY_DIR}/geometry-central/include)
+
+# libdirectional (header-only, with GMP for exact arithmetic)
+include_directories(${THIRD_PARTY_DIR}/libdirectional/include)
+find_library(GMP_LIBRARY gmp PATHS /opt/local/lib REQUIRED)
+find_library(GMPXX_LIBRARY gmpxx PATHS /opt/local/lib REQUIRED)
+include_directories(/opt/local/include)
+
+# Instant Meshes (field-aligned remeshing, non-GUI batch library)
+include(instant-meshes)
 
 ################################################################################
 # Library

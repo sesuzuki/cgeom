@@ -14,6 +14,56 @@ namespace CGeom.Tools
     {
         public enum ForceFieldTypes { Gaussian, InverseDistances }
 
+        public static Polyline[] DijkstraPath(Mesh mesh, IEnumerable<Point3d> startVertices, IEnumerable<Point3d> endVertices)
+        {
+            if (startVertices.Count() != endVertices.Count()) throw new Exception("The number of starting vertices doesn't match with the number of ending vertices.");
+
+            int numPaths = startVertices.Count();
+            // Parse mesh data
+            double[] coords;
+            int[] faces;
+            int numVertices, numFaces;
+            Mesh copy = mesh.DuplicateMesh();
+            PointCloud cloud = new PointCloud(copy.Vertices.ToPoint3dArray());
+            Utils.ParseTriangleRhinoMesh(copy, out coords, out faces, out numVertices, out numFaces);
+
+            IntPtr outPointCoords, outPointOffsets;
+            int outNumCoords, outNumOffsets;
+
+            int[] vStart = new int[numPaths];
+            int[] vEnd = new int[numPaths];
+            for (int i=0; i<numPaths; i++)
+            {
+                vStart[i] = cloud.ClosestPoint(startVertices.ElementAt(i));
+                vEnd[i] = cloud.ClosestPoint(endVertices.ElementAt(i));
+            }
+
+            Kernel.GeometryCentral.CgeomGetDijkstraPath(numVertices, numFaces, numPaths, coords, faces, vStart, vEnd, out outPointCoords, out outPointOffsets, out outNumCoords, out outNumOffsets);
+
+            double[] outCoords = new double[outNumCoords];
+            Marshal.Copy(outPointCoords, outCoords, 0, outNumCoords);
+            Marshal.FreeCoTaskMem(outPointCoords);
+
+            int[] outOffsets = new int[outNumOffsets];
+            Marshal.Copy(outPointOffsets, outOffsets, 0, outNumOffsets);
+            Marshal.FreeCoTaskMem(outPointOffsets);
+
+            Polyline[] paths = new Polyline[outNumOffsets];
+            int startOffset = 0, endOffset;
+            for (int i = 0; i < outNumOffsets; i++)
+            {
+                endOffset = outOffsets[i];
+                int numPts = (int)(endOffset - startOffset) / 3;
+
+                Point3d[] pts = new Point3d[numPts];
+                for (int j = 0; j < numPts; j++) pts[j] = new Point3d(outCoords[startOffset + j * 3], outCoords[startOffset + j * 3 + 1], outCoords[startOffset + j * 3 + 2]);
+                paths[i] = new Polyline(pts);
+                startOffset = endOffset;
+            }
+
+            return paths;
+        }
+
         public static Polyline[] FlipGeodesics(Mesh mesh, IEnumerable<Curve> polylines)
         {
             // Parse mesh data
@@ -299,6 +349,66 @@ namespace CGeom.Tools
             {
                 for (int i = 0; i < numPts; i++) positions[i] += forces[i] * dt;
             }
+        }
+
+        public static Mesh RemeshAlignedToCurvatureField(Mesh mesh, double edgeLength, double anchor, out string log)
+        {
+            // Parse mesh data
+            double[] coords;
+            int[] faces;
+            int numVertices, numFaces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces);
+
+            int outNumVertices, outNumFaces, outNumDegrees;
+            IntPtr outCoords, outFaces, outDegrees, outErrorMsg;
+            int errorCode = Kernel.Processing.CgeomRemeshAlignedToCurvatureField(numVertices, numFaces, coords, faces, edgeLength, anchor, out outNumVertices, out outNumFaces, out outNumDegrees, out outCoords, out outFaces, out outDegrees, out outErrorMsg);
+            log = Marshal.PtrToStringAnsi(outErrorMsg);
+
+            Mesh outMesh = null;
+            if (errorCode == 0)
+            {
+                Point3d[] outV = Utils.ParsePointerToPoint3DArr(outCoords, outNumVertices, Utils.StorageOrder.ColumnMajor);
+                MeshFace[] outF = Utils.ParseLibhedraFacesToMeshFaces(outDegrees, outFaces, outNumFaces, outNumDegrees, Utils.StorageOrder.ColumnMajor);
+
+                outMesh = new Mesh();
+                outMesh.Vertices.AddVertices(outV);
+                outMesh.Faces.AddFaces(outF);
+                outMesh.Vertices.CombineIdentical(true, true);
+                outMesh.Faces.CullDegenerateFaces();
+                outMesh.Normals.ComputeNormals();
+            }
+
+            return outMesh;
+        }
+
+        // targetVertexCount > 0 overrides edgeLength; pass 0 to use edgeLength instead.
+        public static Mesh InstantMeshesRemesh(Mesh mesh, double edgeLength, int targetVertexCount, out string log)
+        {
+            double[] coords;
+            int[] faces;
+            int numVertices, numFaces;
+            Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces, false);
+
+            int outNumVertices, outNumFaces, outNumDegrees;
+            IntPtr outCoords, outFaces, outDegrees, outErrorMsg;
+            int errorCode = Kernel.Processing.CgeomInstantMeshesRemesh(numVertices, numFaces, coords, faces, edgeLength, targetVertexCount, out outNumVertices, out outNumFaces, out outNumDegrees, out outCoords, out outFaces, out outDegrees, out outErrorMsg);
+            log = Marshal.PtrToStringAnsi(outErrorMsg);
+
+            Mesh outMesh = null;
+            if (errorCode == 0)
+            {
+                Point3d[] outV = Utils.ParsePointerToPoint3DArr(outCoords, outNumVertices, Utils.StorageOrder.ColumnMajor);
+                MeshFace[] outF = Utils.ParsePointerToMeshFaceArr(outFaces, outNumFaces, Utils.StorageOrder.ColumnMajor);
+
+                outMesh = new Mesh();
+                outMesh.Vertices.AddVertices(outV);
+                outMesh.Faces.AddFaces(outF);
+                outMesh.Vertices.CombineIdentical(true, true);
+                outMesh.Faces.CullDegenerateFaces();
+                outMesh.Normals.ComputeNormals();
+            }
+
+            return outMesh;
         }
     }
 }

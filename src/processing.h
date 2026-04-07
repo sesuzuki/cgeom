@@ -18,13 +18,17 @@ namespace CGeom
 
     CGEOM_PARAM_API void cgeomGetFlipGeodesics(int numVertices, int numFaces, int numPointOffsets, double *inCoords, int *inFaces, int *inPtsIndices, int *inPointOffset, double **outPointCoords, int **outPointOffsets, size_t *outNumCoords, size_t *outNumOffsets);
 
+    CGEOM_PARAM_API void cgeomGetDijkstraPath(int numVertices, int numFaces, int numPaths, double *inCoords, int *inFaces, int *inStartIndices, int *inEndIndices, double **outPointCoords, int **outPointOffsets, size_t *outNumCoords, size_t *outNumOffsets);
+
      /////////////////////////////////////////////////////////////////////////////////////////
-    // UmbrellaMesh
+    // libigl
     /////////////////////////////////////////////////////////////////////////////////////////
 
     CGEOM_PARAM_API void cgeomParseMatrixXd(const Eigen::MatrixXd m, double **outData, size_t *outCount);
 
     CGEOM_PARAM_API void cgeomParseMatrixXi(const Eigen::MatrixXd m, int **outData, size_t *outCount);
+
+    CGEOM_PARAM_API void cgeomParseVectorXi(const Eigen::VectorXi& v, int** outData, size_t* outCount);
 
     CGEOM_PARAM_API void cgeomParseStdVectorInt(const std::vector<int> m, int **outData, size_t *outCount);
 
@@ -58,4 +62,13 @@ namespace CGeom
     CGEOM_PARAM_API int cgeomHarmonicParametrization(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outUVCount, double **outUV, const char **errorMessage);
     
     CGEOM_PARAM_API int cgeomLeastSquaresConformalMaps(const int numVertices, const int numFaces, double *inCoords, int *inFaces, size_t *outUVCount, double **outUV, const char **errorMessage);
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // libdirectional
+    /////////////////////////////////////////////////////////////////////////////////////////
+    CGEOM_PARAM_API int cgeomRemeshAlignedToCurvatureField(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double edgeLength, size_t *outVertexCount, size_t *outFaceCount, size_t *outDegreesCount, double **outCoords, int **outFaces, int **outDegrees, const char **errorMessage);
+
+    // Instant Meshes
+    /////////////////////////////////////////////////////////////////////////////////////////
+    CGEOM_PARAM_API int cgeomInstantMeshesRemesh(const int numVertices, const int numFaces, double *inCoords, int *inFaces, double edgeLength, int targetVertexCount, size_t *outVertexCount, size_t *outFaceCount, size_t *outDegreesCount, double **outCoords, int **outFaces, int **outDegrees, const char **errorMessage);
 }

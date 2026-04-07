@@ -10,3 +10,9 @@
 [submodule "dependencies/geometry-central"]
 	path = dependencies/geometry-central
 	url = https://github.com/nmwsharp/geometry-central.git
+[submodule "dependencies/libdirectional"]
+	path = dependencies/libdirectional
+	url = https://github.com/avaxman/libdirectional.git
+[submodule "dependencies/instant-meshes"]
+	path = dependencies/instant-meshes
+	url = https://github.com/wjakob/instant-meshes.git

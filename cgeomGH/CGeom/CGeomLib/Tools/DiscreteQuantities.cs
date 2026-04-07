@@ -351,17 +351,16 @@ namespace CGeom.Tools
             int[] faces;
             Utils.ParseTriangleRhinoMesh(mesh, out coords, out faces, out numVertices, out numFaces, false);
 
+            PointCloud vertices = new PointCloud(mesh.Vertices.ToPoint3dArray());
+
             // Find mesh closest source points
-            int inSourceVertex = mesh.ClosestMeshPoint(sourcePoint, maximumDistance).ComponentIndex.Index;
+            int inSourceVertex = vertices.ClosestPoint(sourcePoint);
 
             // Find mesh closest target points
             HashSet<int> inTargetVertices = new HashSet<int>();
-            for (int i = 0; i < targetPoints.Count; i++)
-            {
-                inTargetVertices.Add(mesh.ClosestMeshPoint(targetPoints[i], maximumDistance).ComponentIndex.Index);
-            }
+            for (int i = 0; i < targetPoints.Count; i++) inTargetVertices.Add(vertices.ClosestPoint(targetPoints[i]));
 
-            if (!inTargetVertices.Contains(inSourceVertex)) throw new Exception("Source and Target vertices are the same.");
+            if (inTargetVertices.Contains(inSourceVertex)) throw new Exception("Source and Target vertices are the same.");
 
             int[] sourceVertices, targetVertices;
             sourceVertices = new int[] { inSourceVertex };

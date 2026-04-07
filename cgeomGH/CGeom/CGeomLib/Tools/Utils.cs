@@ -424,5 +424,53 @@ namespace CGeom.Tools
 
             return faces;
         }
+
+        public static MeshFace[] ParseLibhedraFacesToMeshFaces(IntPtr dPtr, IntPtr fPtr, int faceCount, int degreeCount, StorageOrder order = StorageOrder.ColumnMajor)
+        {
+            int[] degrees = ParsePointerToIntArr(dPtr, degreeCount);
+            int[] faceData = ParsePointerToIntArr(fPtr, faceCount);
+            // F is a faceCount x maxDegree matrix
+            int[,] faceMatrix = ParseIntegerArrToMatrixXi(faceData, degrees.Max(), order);
+
+            var faces = new List<MeshFace>();
+
+            for (int i = 0; i < degreeCount; i++)
+            {
+                int d = degrees[i];
+
+                if (d < 3)
+                    continue;
+
+                if (d == 3)
+                {
+                    faces.Add(new MeshFace(
+                        faceMatrix[i, 0],
+                        faceMatrix[i, 1],
+                        faceMatrix[i, 2]));
+                }
+                else if (d == 4)
+                {
+                    faces.Add(new MeshFace(
+                        faceMatrix[i, 0],
+                        faceMatrix[i, 1],
+                        faceMatrix[i, 2],
+                        faceMatrix[i, 3]));
+                }
+                else
+                {
+                    // Fan triangulation for n-gons
+                    int v0 = faceMatrix[i, 0];
+                    for (int j = 1; j < d - 1; j++)
+                    {
+                        faces.Add(new MeshFace(
+                            v0,
+                            faceMatrix[i, j],
+                            faceMatrix[i, j + 1]));
+                    }
+                }
+            }
+
+            return faces.ToArray();
+        }
     }
 }

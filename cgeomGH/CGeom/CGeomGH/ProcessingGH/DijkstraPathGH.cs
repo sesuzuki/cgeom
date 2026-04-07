@@ -7,7 +7,7 @@ using Rhino.Geometry;
 
 namespace CGeomGH.ProcessingGH
 {
-    public class FlipGeodesicsGH : GH_Component
+    public class DijkstraPathGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.ProcessingGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public FlipGeodesicsGH()
-          : base("Geodesic", "Geodesic",
-            "Compute geodesic paths on a triangular mesh based on the flip geodesic algorihtm (Sharp & Crane).",
-            "CGeom", "Processing")
+        public DijkstraPathGH()
+          : base("DijkstraPath", "DijkstraPath",
+                "Compute Dijkstra paths on a triangular mesh.",
+                "CGeom", "Processing")
         {
         }
 
@@ -29,7 +29,8 @@ namespace CGeomGH.ProcessingGH
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Triangular Mesh", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Polyline", "Polyline", "Input paths to convert into geodesic paths", GH_ParamAccess.list);
+            pManager.AddPointParameter("Start", "Start", "Use the reference start point to find the path. The closest vertex to this point will be selected.", GH_ParamAccess.list);
+            pManager.AddPointParameter("End", "End", "Use the reference end point to find the path. The closest vertex to this point will be selected.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -48,15 +49,17 @@ namespace CGeomGH.ProcessingGH
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh m = new Mesh();
-            List<Curve> pl = new List<Curve>();
+            List<Point3d> start = new List<Point3d>();
+            List<Point3d> end = new List<Point3d>();
             DA.GetData(0, ref m);
-            DA.GetDataList(1, pl);
+            DA.GetDataList(1, start);
+            DA.GetDataList(2, end);
 
             if (m.Faces.QuadCount > 0) m.Faces.ConvertQuadsToTriangles();
 
-            var coords = Processing.FlipGeodesics(m, pl.ToArray());
+            var paths = Processing.DijkstraPath(m, start, end);
 
-            DA.SetDataList(0, coords);
+            DA.SetDataList(0, paths);
         }
 
         /// <summary>
@@ -80,7 +83,7 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("0ef63926-33ad-4c59-90bc-d1a2a3d60af5"); }
+            get { return new Guid("80c86a54-4589-42e4-b66a-f68aec74df22"); }
         }
     }
 }

@@ -61,6 +61,15 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomLeastSquaresConformalMaps")]
             internal static extern int CgeomLeastSquaresConformalMaps(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, out int outUVCount, out IntPtr outUV, out IntPtr errorMessage);
+
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomRemeshAlignedToCurvatureField")]
+            internal static extern int CgeomRemeshAlignedToCurvatureField(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, [In] double edgeLength, [In] double anchorValue, out int outVertexCount, out int outFaceCount, out int outDegreesCount, out IntPtr outCoords, out IntPtr outFaces, out IntPtr outDegrees, out IntPtr error);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomInstantMeshesRemesh")]
+            internal static extern int CgeomInstantMeshesRemesh(int numVertices, int numFaces, [In] double[] inCoords, [In] int[] inFaces, [In] double edgeLength, [In] int targetVertexCount, out int outVertexCount, out int outFaceCount, out int outDegreesCount, out IntPtr outCoords, out IntPtr outFaces, out IntPtr outDegrees, out IntPtr error);
         }
     }
 }

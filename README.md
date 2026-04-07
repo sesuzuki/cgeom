@@ -13,12 +13,28 @@ The code has been tested on Mac OS environments. Instructions for building the c
 - **Rhino 7 or 8 on Intel Processors:** Additionally, it is compatible with Rhino 7 or 8 running on Intel processors.
 
 ## Building C++ Libraries
-The C++ code relies on `libigl` and `SuiteSparse`, which will be downloaded through the `cmake` file.
+The C++ code relies on `libigl` (v2.5.0) and `SuiteSparse`, which will be downloaded through the `cmake` file. Eigen 3.4 is fetched automatically as part of libigl.
 
 The code also relies on several dependencies that are included as submodules:
 [OpenMesh](https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git),
 [libQEx](https://github.com/hcebke/libQEx.git),
 [BFF](https://github.com/GeometryCollective/boundary-first-flattening.git),
+[geometry-central](https://github.com/nmwsharp/geometry-central.git),
+[libdirectional](https://github.com/avaxman/libdirectional.git).
+
+### Additional System Dependency: GMP
+
+[libdirectional](https://github.com/avaxman/libdirectional.git) requires [GMP](https://gmplib.org) (GNU Multiple Precision Arithmetic Library) for exact arithmetic. Install it before building:
+
+**macOS (MacPorts):**
+```bash
+sudo port install gmp
+```
+
+**macOS (Homebrew):**
+```bash
+brew install gmp
+```
 
 ## Obtaining and Building
 

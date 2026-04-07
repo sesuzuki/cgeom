@@ -7,7 +7,7 @@ using Rhino.Geometry;
 
 namespace CGeomGH.ProcessingGH
 {
-    public class FlipGeodesicsGH : GH_Component
+    public class RemeshAlongCurvatureGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -16,10 +16,10 @@ namespace CGeomGH.ProcessingGH
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public FlipGeodesicsGH()
-          : base("Geodesic", "Geodesic",
-            "Compute geodesic paths on a triangular mesh based on the flip geodesic algorihtm (Sharp & Crane).",
-            "CGeom", "Processing")
+        public RemeshAlongCurvatureGH()
+          : base("RemeshAlongCurvature", "RemeshCurvature",
+                    "Remesh so that a given isovalue of the scalar field follows (new) edges of the output mesh.",
+                    "CGeom", "Processing")
         {
         }
 
@@ -28,8 +28,9 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "Triangular Mesh", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Polyline", "Polyline", "Input paths to convert into geodesic paths", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Mesh", "Mesh", "Initial triangular mesh (quad-meshes will be triangulated).", GH_ParamAccess.item);
+            pManager.AddNumberParameter("EdgeLength", "EdgeLength", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Anchor", "Anchor", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -37,7 +38,8 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddCurveParameter("Geodesics", "Geodesics", "Geodesic paths", GH_ParamAccess.list);
+            pManager.AddMeshParameter("TriMesh", "TriMesh", "", GH_ParamAccess.item);
+            pManager.AddTextParameter("Log", "Log", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -47,16 +49,18 @@ namespace CGeomGH.ProcessingGH
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Mesh m = new Mesh();
-            List<Curve> pl = new List<Curve>();
+            Mesh m = null;
+            double edgeLength = 1.0, anchor = 0.5;
             DA.GetData(0, ref m);
-            DA.GetDataList(1, pl);
+            DA.GetData(1, ref edgeLength);
+            DA.GetData(2, ref anchor);
 
-            if (m.Faces.QuadCount > 0) m.Faces.ConvertQuadsToTriangles();
+            string log; 
+            var outMesh = Processing.RemeshAlignedToCurvatureField(m, edgeLength, anchor, out log);
+            if (outMesh == null) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failure case! Check log.");
 
-            var coords = Processing.FlipGeodesics(m, pl.ToArray());
-
-            DA.SetDataList(0, coords);
+            DA.SetData(0, outMesh);
+            DA.SetData(1, log);
         }
 
         /// <summary>
@@ -80,7 +84,7 @@ namespace CGeomGH.ProcessingGH
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("0ef63926-33ad-4c59-90bc-d1a2a3d60af5"); }
+            get { return new Guid("45f83f36-4386-4c50-8ea0-2cf21ee98baf"); }
         }
     }
 }

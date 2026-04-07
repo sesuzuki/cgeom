@@ -11,6 +11,10 @@ namespace CGeom.Wrappers
             [SuppressUnmanagedCodeSecurity]
             [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomGetFlipGeodesics")]
             internal static extern void CgeomGetFlipGeodesics(int numVertices, int numFaces, int numPoints, double[] inCoords, int[] inFaces, int[] inPtsIndices, int[] inPointOffset, out IntPtr outPointCoords, out IntPtr outPointOffsets, out int outNumCoords, out int outNumOffsets);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(cgeom_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "cgeomGetDijkstraPath")]
+            internal static extern void CgeomGetDijkstraPath(int numVertices, int numFaces, int numPaths, double[] inCoords, int[] inFaces, int[] inStartIndices, int[] inEndIndices, out IntPtr outPointCoords, out IntPtr outPointOffsets, out int outNumCoords, out int outNumOffsets);
         }
     }
 }

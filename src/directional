@@ -1,0 +1,639 @@
+#include <iostream>
+#include <map>
+#include <random>
+#include <Eigen/Core>
+#include <directional/TriMesh.h>
+#include <directional/PCFaceTangentBundle.h>
+#include <directional/CartesianField.h>
+#include <directional/readOFF.h>
+#include <directional/curl_matching.h>
+#include <directional/polyvector_field.h>
+#include <directional/polyvector_to_raw.h>
+#include <directional/polyvector_iteration_functions.h>
+#include <directional/PolyVectorData.h>
+#include <directional/combing.h>
+#include <directional/setup_integration.h>
+#include <directional/integrate.h>
+#include <directional/setup_mesher.h>
+#include <directional/mesher.h>
+#include <directional/directional_viewer.h>
+#include "polygonal_write_OFF.h"
+
+directional::TriMesh meshWhole, meshCut;
+directional::PCFaceTangentBundle ftb;
+directional::CartesianField rawField, combedField;
+Eigen::VectorXi DPolyMesh;
+Eigen::MatrixXi FPolyMesh;
+Eigen::MatrixXd VPolyMesh;
+Eigen::MatrixXd NFunction, NCornerFunction;
+directional::DirectionalViewer viewer;
+polyscope::SurfaceMesh* polygonalMesh = nullptr;
+
+
+
+int main()
+{
+    enum class RemeshResult {
+        ALIGNED_REMESH,
+        ISOTROPIC_FALLBACK_UMBILIC,
+        ISOTROPIC_FALLBACK_FAILED_ALIGNMENT
+    };
+
+    // High-level controls.
+    const bool headless = std::getenv("DIRECTIONAL_NO_VIEWER") != nullptr;
+    const int fieldDegree = 6;                 // 6-RoSy is the natural orientation field for triangle meshing
+    const double targetEdgeLength = 0.06;      // world-space target edge length for the output mesh
+
+    // Input mesh.
+    directional::readOFF(TUTORIAL_DATA_PATH "/cap.off",meshWhole);
+    ftb.init(meshWhole);
+
+    // Principal directions are only meaningful when curvature is anisotropic.
+    // On a spherical cap, k1 ~= k2 in large regions, so we must detect that and
+    // fall back to a safer guide field.
+    const double curvatureEps = 1e-10;
+    const double anisotropyEps = 1e-12;
+    const double anisotropyThreshold = 0.05;
+    const double boundaryWeight = 0.25;
+    const double anchorWeight = 0.05;
+
+    // Stage 1: build one guide direction and one confidence weight per face.
+    int numFaces = meshWhole.F.rows();
+    Eigen::MatrixXd faceGuideVectors(numFaces, 3);
+    Eigen::VectorXd faceGuideWeights = Eigen::VectorXd::Zero(numFaces);
+    double totalFaceAnisotropy = 0.0;
+
+    for (int f = 0; f < numFaces; f++) {
+        Eigen::Vector3d ref = Eigen::Vector3d::Zero();
+        Eigen::Vector3d d1sum = Eigen::Vector3d::Zero();
+        double anisotropySum = 0.0;
+        int validSamples = 0;
+        for (int j = 0; j < 3; j++) {
+            int v = meshWhole.F(f, j);
+            double k0 = meshWhole.vertexPrincipalCurvatures(v, 0);
+            double k1 = meshWhole.vertexPrincipalCurvatures(v, 1);
+            Eigen::Vector3d dir = meshWhole.minVertexPrincipalDirections.row(v);
+            if (!std::isfinite(k0) || !std::isfinite(k1) || !dir.allFinite())
+                continue;
+
+            if (validSamples == 0)
+                ref = dir;
+            anisotropySum += std::abs(k1 - k0) /
+                             (std::abs(k0) + std::abs(k1) + anisotropyEps);
+            if (dir.dot(ref) < 0) dir = -dir;
+            d1sum += dir;
+            validSamples++;
+        }
+        double faceAnisotropy = (validSamples > 0 ? anisotropySum / (double)validSamples : 0.0);
+        totalFaceAnisotropy += faceAnisotropy;
+
+        Eigen::Vector3d n = meshWhole.faceNormals.row(f).normalized();
+        Eigen::Vector3d d1;
+        if (validSamples == 0 || faceAnisotropy < anisotropyThreshold || d1sum.norm() < curvatureEps) {
+            d1 = meshWhole.FBx.row(f).normalized();
+        } else {
+            d1 = d1sum - d1sum.dot(n) * n;
+            if (d1.norm() < curvatureEps) {
+                d1 = meshWhole.FBx.row(f).normalized();
+            } else {
+                d1.normalize();
+                faceGuideWeights(f) = faceAnisotropy;
+            }
+        }
+        faceGuideVectors.row(f) = d1.transpose();
+    }
+    const double averageFaceAnisotropy = totalFaceAnisotropy / (double)numFaces;
+
+    // Stage 2: collect the faces where curvature alignment is reliable.
+    std::vector<int> guideFacesList;
+    std::vector<Eigen::RowVector3d> guideVectorsList;
+    std::vector<double> guideWeightsList;
+    for (int f = 0; f < numFaces; f++) {
+        if (faceGuideWeights(f) > 0.0) {
+            guideFacesList.push_back(f);
+            guideVectorsList.push_back(faceGuideVectors.row(f));
+            guideWeightsList.push_back(faceGuideWeights(f));
+        }
+    }
+
+    // Stage 3: where curvature is unreliable, borrow orientation from the boundary.
+    std::vector<char> hasGuide(numFaces, 0);
+    for (int face : guideFacesList)
+        hasGuide[face] = 1;
+
+    for (int f = 0; f < numFaces; f++) {
+        if (hasGuide[f])
+            continue;
+
+        int he = meshWhole.FH(f);
+        int heBegin = he;
+        Eigen::Vector3d bestDir = Eigen::Vector3d::Zero();
+        double bestLen2 = -1.0;
+        do {
+            if (meshWhole.twinH(he) == -1) {
+                int v0 = meshWhole.HV(he);
+                int v1 = meshWhole.HV(meshWhole.nextH(he));
+                Eigen::Vector3d edge = meshWhole.V.row(v1) - meshWhole.V.row(v0);
+                Eigen::Vector3d n = meshWhole.faceNormals.row(f).normalized();
+                Eigen::Vector3d tangent = edge - edge.dot(n) * n;
+                double len2 = tangent.squaredNorm();
+                if (len2 > bestLen2) {
+                    bestLen2 = len2;
+                    bestDir = tangent;
+                }
+            }
+            he = meshWhole.nextH(he);
+        } while (he != heBegin);
+
+        if (bestLen2 > curvatureEps * curvatureEps) {
+            bestDir.normalize();
+            guideFacesList.push_back(f);
+            guideVectorsList.push_back(bestDir.transpose());
+            guideWeightsList.push_back(boundaryWeight);
+            hasGuide[f] = 1;
+        }
+    }
+
+    // Last fallback: if nothing is reliable, add a few weak anchors so the field still
+    // has a stable global orientation.
+    if (guideFacesList.empty()) {
+        const int anchorCount = std::min(3, numFaces);
+        for (int a = 0; a < anchorCount; a++) {
+            int f = (a * numFaces) / anchorCount;
+            Eigen::Vector3d dir = meshWhole.FBx.row(f).normalized();
+            guideFacesList.push_back(f);
+            guideVectorsList.push_back(dir.transpose());
+            guideWeightsList.push_back(anchorWeight);
+        }
+    }
+
+    // Stage 4: solve a smooth 6-RoSy field from those guides.
+    directional::PolyVectorData pvData;
+    pvData.N      = fieldDegree;
+    pvData.tb     = &ftb;
+    pvData.wSmooth = 1.0;
+    pvData.wRoSy   = 5.0;
+
+    if (!guideFacesList.empty()) {
+        pvData.constSpaces.resize(guideFacesList.size());
+        pvData.constVectors.resize(guideFacesList.size(), 3);
+        pvData.wAlignment.resize(guideFacesList.size());
+        for (int k = 0; k < (int)guideFacesList.size(); k++) {
+            pvData.constSpaces(k)      = guideFacesList[k];
+            pvData.constVectors.row(k) = guideVectorsList[k];
+            pvData.wAlignment(k)       = guideWeightsList[k];
+        }
+    }
+
+    std::cout << "Guided constraint faces: " << guideFacesList.size()
+              << " / " << numFaces << std::endl;
+    std::cout << "Average face anisotropy: " << averageFaceAnisotropy << std::endl;
+    directional::CartesianField pvField;
+    std::cout << "Calling polyvector_field..." << std::endl;
+    directional::polyvector_field(pvData, pvField);
+    std::cout << "polyvector_field done." << std::endl;
+
+    // Iteratively project toward curl-free while preserving the N-RoSy symmetry.
+    pvData.iterationMode = true;
+    std::vector<directional::PvIterationFunction> iterFuncs;
+    iterFuncs.push_back(directional::soft_rosy);
+    iterFuncs.push_back(directional::curl_projection);
+    std::cout << "Calling polyvector_iterate..." << std::endl;
+    directional::polyvector_iterate(pvData, pvField, iterFuncs, /*numIterations=*/20);
+    std::cout << "polyvector_iterate done." << std::endl;
+
+    // Stage 5: convert the polyvector field to a raw directional field.
+    std::cout << "Calling polyvector_to_raw..." << std::endl;
+    directional::polyvector_to_raw(pvField, rawField, /*signSymmetry=*/true);
+    std::cout << "polyvector_to_raw done." << std::endl;
+
+    auto average_vector_norm = [](const directional::CartesianField& field) -> double {
+        double sum = 0.0;
+        int count = 0;
+        for (int f = 0; f < field.extField.rows(); ++f)
+            for (int j = 0; j < field.N; ++j) {
+                sum += field.extField.block(f, 3 * j, 1, 3).norm();
+                count++;
+            }
+        return (count > 0 ? sum / (double)count : 0.0);
+    };
+
+    // Average triangle edge length of a mesh.
+    auto average_edge_length = [&](const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) -> double {
+        std::map<std::pair<int, int>, bool> edges;
+        double total = 0.0;
+        int count = 0;
+        for (int f = 0; f < F.rows(); ++f) {
+            for (int e = 0; e < 3; ++e) {
+                int a = F(f, e);
+                int b = F(f, (e + 1) % 3);
+                if (a > b) std::swap(a, b);
+                if (edges.insert({{a, b}, true}).second) {
+                    total += (V.row(a) - V.row(b)).norm();
+                    count++;
+                }
+            }
+        }
+        return (count > 0 ? total / (double)count : 0.0);
+    };
+
+    // Uniform midpoint subdivision used by the isotropic fallback.
+    auto build_isotropic_triangle_mesh = [&](int subdivisionSteps,
+                                             Eigen::MatrixXd& VOut,
+                                             Eigen::VectorXi& DOut,
+                                             Eigen::MatrixXi& FOut) {
+        Eigen::MatrixXd currV = meshWhole.V;
+        Eigen::MatrixXi currF = meshWhole.F;
+
+        for (int step = 0; step < subdivisionSteps; ++step) {
+            std::vector<Eigen::RowVector3d> verts(currV.rows());
+            for (int v = 0; v < currV.rows(); ++v)
+                verts[v] = currV.row(v);
+
+            std::map<std::pair<int, int>, int> edgeMidpoints;
+            std::vector<Eigen::RowVector3i> faces;
+            faces.reserve(currF.rows() * 4);
+
+            auto midpoint_vertex = [&](int a, int b) -> int {
+                if (a > b) std::swap(a, b);
+                std::pair<int, int> key(a, b);
+                auto it = edgeMidpoints.find(key);
+                if (it != edgeMidpoints.end())
+                    return it->second;
+
+                Eigen::RowVector3d mid = 0.5 * (currV.row(a) + currV.row(b));
+                int idx = (int)verts.size();
+                verts.push_back(mid);
+                edgeMidpoints[key] = idx;
+                return idx;
+            };
+
+            for (int f = 0; f < currF.rows(); ++f) {
+                int v0 = currF(f, 0);
+                int v1 = currF(f, 1);
+                int v2 = currF(f, 2);
+                int m01 = midpoint_vertex(v0, v1);
+                int m12 = midpoint_vertex(v1, v2);
+                int m20 = midpoint_vertex(v2, v0);
+                faces.push_back(Eigen::RowVector3i(v0, m01, m20));
+                faces.push_back(Eigen::RowVector3i(m01, v1, m12));
+                faces.push_back(Eigen::RowVector3i(m20, m12, v2));
+                faces.push_back(Eigen::RowVector3i(m01, m12, m20));
+            }
+
+            currV.resize((int)verts.size(), 3);
+            for (int v = 0; v < (int)verts.size(); ++v)
+                currV.row(v) = verts[v];
+
+            currF.resize((int)faces.size(), 3);
+            for (int f = 0; f < (int)faces.size(); ++f)
+                currF.row(f) = faces[f];
+        }
+
+        VOut = currV;
+        FOut = currF;
+        DOut = Eigen::VectorXi::Constant(currF.rows(), 3);
+    };
+
+    // Choose how many midpoint-subdivision steps are needed to approach targetEdgeLength.
+    auto isotropic_subdivision_steps = [&]() -> int {
+        double baseLength = average_edge_length(meshWhole.V, meshWhole.F);
+        if (!(baseLength > 0.0) || !(targetEdgeLength > 0.0))
+            return 0;
+        int steps = 0;
+        double currLength = baseLength;
+        while (currLength > 1.5 * targetEdgeLength && steps < 6) {
+            currLength *= 0.5;
+            steps++;
+        }
+        return steps;
+    };
+
+    // If the polyvector-to-raw conversion becomes unstable, build a smooth raw 6-RoSy
+    // directly from the guide directions instead.
+    auto build_fallback_raw_field = [&]() {
+        Eigen::MatrixXd seedDirs(numFaces, 3);
+        Eigen::VectorXd seedWeights = Eigen::VectorXd::Zero(numFaces);
+        for (int f = 0; f < numFaces; ++f)
+            seedDirs.row(f) = meshWhole.FBx.row(f).normalized();
+
+        for (int k = 0; k < (int)guideFacesList.size(); ++k) {
+            int f = guideFacesList[k];
+            if (guideWeightsList[k] >= seedWeights(f)) {
+                seedWeights(f) = guideWeightsList[k];
+                seedDirs.row(f) = guideVectorsList[k];
+            }
+        }
+
+        Eigen::MatrixXd smoothDirs = seedDirs;
+        Eigen::MatrixXd nextDirs = smoothDirs;
+        for (int iter = 0; iter < 40; ++iter) {
+            for (int f = 0; f < numFaces; ++f) {
+                Eigen::Vector3d nf = meshWhole.faceNormals.row(f).normalized();
+                Eigen::Vector3d acc = 0.5 * smoothDirs.row(f).transpose();
+                if (seedWeights(f) > 0.0)
+                    acc += 4.0 * seedWeights(f) * seedDirs.row(f).transpose();
+
+                for (int j = 0; j < 3; ++j) {
+                    int e = meshWhole.FE(f, j);
+                    int f0 = meshWhole.EF(e, 0);
+                    int f1 = meshWhole.EF(e, 1);
+                    int g = (f0 == f ? f1 : f0);
+                    if (g < 0)
+                        continue;
+
+                    Eigen::Vector3d proj = smoothDirs.row(g).transpose();
+                    proj -= proj.dot(nf) * nf;
+                    double norm = proj.norm();
+                    if (norm < curvatureEps)
+                        continue;
+                    proj /= norm;
+                    if (acc.norm() > curvatureEps && proj.dot(acc) < 0.0)
+                        proj = -proj;
+                    acc += proj;
+                }
+
+                acc -= acc.dot(nf) * nf;
+                if (acc.norm() < curvatureEps)
+                    acc = meshWhole.FBx.row(f).normalized();
+                else
+                    acc.normalize();
+                nextDirs.row(f) = acc.transpose();
+            }
+            smoothDirs = nextDirs;
+        }
+
+        directional::CartesianField fallbackField;
+        fallbackField.init(ftb, directional::fieldTypeEnum::RAW_FIELD, fieldDegree);
+        Eigen::MatrixXd extField(numFaces, 3 * fieldDegree);
+        const double kTwoPi = 2.0 * std::acos(-1.0);
+        for (int f = 0; f < numFaces; ++f) {
+            Eigen::Vector3d n = meshWhole.faceNormals.row(f).normalized();
+            Eigen::Vector3d d0 = smoothDirs.row(f).transpose();
+            d0 -= d0.dot(n) * n;
+            if (d0.norm() < curvatureEps)
+                d0 = meshWhole.FBx.row(f).normalized();
+            else
+                d0.normalize();
+            Eigen::Vector3d d1 = n.cross(d0).normalized();
+            for (int k = 0; k < fieldDegree; ++k) {
+                double angle = kTwoPi * (double)k / (double)fieldDegree;
+                Eigen::Vector3d dir = std::cos(angle) * d0 + std::sin(angle) * d1;
+                extField.block(f, 3 * k, 1, 3) = dir.transpose();
+            }
+        }
+        fallbackField.set_extrinsic_field(extField);
+        return fallbackField;
+    };
+
+    // Stage 6: if the raw field is invalid, replace it with the safer fallback field.
+    bool rawFieldFallbackTriggered = false;
+    double avgRawNorm = average_vector_norm(rawField);
+    std::cout << "Average raw field norm: " << avgRawNorm << std::endl;
+    if (!std::isfinite(avgRawNorm)) {
+        std::cout << "Polyvector conversion produced a non-finite raw field; using smoothed guide-field fallback." << std::endl;
+        rawField = build_fallback_raw_field();
+        rawFieldFallbackTriggered = true;
+        avgRawNorm = average_vector_norm(rawField);
+        std::cout << "Average fallback raw field norm: " << avgRawNorm << std::endl;
+    }
+
+    // Stage 7: set up seamless integration on the cut mesh.
+    directional::principal_matching(rawField);
+    directional::IntegrationData intData(fieldDegree);
+    std::cout << "Setting up integration" << std::endl;
+    directional::setup_integration(rawField, intData, meshCut, combedField);
+    std::cout << "Average combed field norm: " << average_vector_norm(combedField) << std::endl;
+    intData.lengthRatio =
+        std::max(1e-6, targetEdgeLength /
+        (meshWhole.V.colwise().maxCoeff() - meshWhole.V.colwise().minCoeff()).norm());
+    const int isotropicSubdivisionSteps = isotropic_subdivision_steps();
+    std::cout << "Target edge length: " << targetEdgeLength << std::endl;
+    std::cout << "Isotropic fallback subdivision steps: " << isotropicSubdivisionSteps << std::endl;
+
+    intData.verbose = true;
+
+    // Stage 8: try several integration anchors and modes until meshing succeeds.
+    static const double kCandidates[] = {
+        0.5,
+        (std::sqrt(5.0) - 1.0) / 2.0,
+        1.0 - (std::sqrt(5.0) - 1.0) / 2.0,
+        0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9
+    };
+    static const int kNumCandidates = 11;
+    static const double kMesherTol = 1e-7;
+
+    auto compress_mesher_data = [&](const directional::IntegrationData& src,
+                                    directional::MesherData& dst) {
+            if (dst.N == src.n)
+                return;
+
+            const int oldN = dst.N;
+            const int newN = src.n;
+            std::vector<Eigen::Triplet<double>> orig2CutTriplets;
+            std::vector<Eigen::Triplet<int>> exactOrig2CutTriplets;
+
+            for (int col = 0; col < dst.orig2CutMat.outerSize(); ++col) {
+                for (Eigen::SparseMatrix<double>::InnerIterator it(dst.orig2CutMat, col); it; ++it) {
+                    int relativeRow = it.row() % oldN;
+                    if (relativeRow < newN) {
+                        int block = it.row() / oldN;
+                        orig2CutTriplets.emplace_back(block * newN + relativeRow, it.col(), it.value());
+                    }
+                }
+            }
+
+            for (int col = 0; col < dst.exactOrig2CutMat.outerSize(); ++col) {
+                for (Eigen::SparseMatrix<int>::InnerIterator it(dst.exactOrig2CutMat, col); it; ++it) {
+                    int relativeRow = it.row() % oldN;
+                    if (relativeRow < newN) {
+                        int block = it.row() / oldN;
+                        exactOrig2CutTriplets.emplace_back(block * newN + relativeRow, it.col(), it.value());
+                    }
+                }
+            }
+
+            dst.N = newN;
+            dst.orig2CutMat.resize(dst.cutF.maxCoeff() >= 0 ? newN * dst.cutV.rows() : 0, dst.orig2CutMat.cols());
+            dst.orig2CutMat.setFromTriplets(orig2CutTriplets.begin(), orig2CutTriplets.end());
+            dst.exactOrig2CutMat.resize(dst.orig2CutMat.rows(), dst.exactOrig2CutMat.cols());
+            dst.exactOrig2CutMat.setFromTriplets(exactOrig2CutTriplets.begin(), exactOrig2CutTriplets.end());
+    };
+
+    // Reject function layouts that would create edge-aligned isolines inside a face.
+    auto has_overlap = [&](const directional::MesherData& mData) -> bool {
+            Eigen::VectorXd cutF = mData.orig2CutMat * mData.vertexNFunction;
+            int n = mData.N;
+            for (int f = 0; f < mData.cutF.rows(); f++) {
+                for (int c0 = 0; c0 < 3; c0++) {
+                    for (int c1 = c0 + 1; c1 < 3; c1++) {
+                        for (int k = 0; k < n; k++) {
+                            double v0 = cutF(n * mData.cutF(f, c0) + k);
+                            double v1 = cutF(n * mData.cutF(f, c1) + k);
+                            if (std::abs(v0 - v1) < kMesherTol) return true;
+                        }
+                    }
+                }
+            }
+            return false;
+    };
+
+    // Try one anchor value, and inside it try several integration modes.
+    auto try_anchor = [&](double anchor) -> bool {
+            const double phi = (std::sqrt(5.0) - 1.0) / 2.0;
+            for (int j = 0; j < intData.n; j++) {
+                double shifted = std::fmod(anchor + phi * j, 1.0);
+                if (shifted < 0.0) shifted += 1.0;
+                intData.fixedValues(j) = shifted;
+            }
+            struct IntegrationMode {
+                bool integralSeamless;
+                bool roundSeams;
+                const char* label;
+            };
+
+            static const IntegrationMode kModes[] = {
+                {false, false, "floating"},
+                {true,  false, "seamless-unrounded"},
+                {true,  true,  "seamless-rounded"},
+            };
+
+            for (const auto& mode : kModes) {
+                intData.integralSeamless = mode.integralSeamless;
+                intData.roundSeams = mode.roundSeams;
+
+                std::cout << "  integrate(" << mode.label << ")..." << std::endl;
+                directional::integrate(combedField, intData, meshCut,
+                                       NFunction, NCornerFunction);
+                std::cout << "  integrate(" << mode.label << ") done." << std::endl;
+
+                if (!intData.nVertexFunction.allFinite() ||
+                    !NFunction.allFinite() ||
+                    !NCornerFunction.allFinite()) {
+                    std::cout << "  integration produced non-finite values, retrying." << std::endl;
+                    continue;
+                }
+
+                directional::MesherData mData;
+                std::cout << "  setup_mesher()..." << std::endl;
+                directional::setup_mesher(meshCut, intData, mData);
+                compress_mesher_data(intData, mData);
+                std::cout << "  setup_mesher() done." << std::endl;
+
+                if (!mData.vertexNFunction.allFinite()) {
+                    std::cout << "  mesher data contains non-finite values, retrying." << std::endl;
+                    continue;
+                }
+
+                // Check using the exact same n=2 compressed functions the mesher will use,
+                // accessed via orig2CutMat * vertexNFunction — identical to what
+                // NFunctionMesher::init() computes as cutNFunctionVec.
+                std::cout << "  overlap check..." << std::endl;
+                if (has_overlap(mData)) {
+                    std::cout << "  overlap detected, retrying." << std::endl;
+                    continue;
+                }
+                std::cout << "  overlap check done." << std::endl;
+
+                mData.verbose = false;
+                std::cout << "  NFunctionMesher::init()..." << std::endl;
+                directional::NFunctionMesher functionMesher(meshWhole, mData);
+                functionMesher.init();
+                std::cout << "  NFunctionMesher::init() done." << std::endl;
+                std::cout << "  generate_mesh()..." << std::endl;
+                functionMesher.generate_mesh();
+                std::cout << "  generate_mesh() done." << std::endl;
+                std::cout << "  simplify_mesh()..." << std::endl;
+                bool success = functionMesher.simplify_mesh();
+                std::cout << "  simplify_mesh() done." << std::endl;
+                if (success) {
+                    functionMesher.to_polygonal(VPolyMesh, DPolyMesh, FPolyMesh);
+                    return true;
+                }
+
+                std::cout << "  simplify_mesh() failed for " << mode.label << ", retrying." << std::endl;
+            }
+
+            return false;
+    };
+
+    intData.fixedValues.resize(intData.n);
+    bool meshed = false;
+    RemeshResult remeshResult = RemeshResult::ALIGNED_REMESH;
+    const bool nearUmbilicSurface =
+        (averageFaceAnisotropy < anisotropyThreshold) || rawFieldFallbackTriggered;
+
+    if (nearUmbilicSurface) {
+        std::cout << "Surface is near-umbilic; using isotropic triangle remeshing fallback." << std::endl;
+        build_isotropic_triangle_mesh(isotropicSubdivisionSteps, VPolyMesh, DPolyMesh, FPolyMesh);
+        meshed = true;
+        remeshResult = RemeshResult::ISOTROPIC_FALLBACK_UMBILIC;
+    }
+
+    for (int c = 0; c < kNumCandidates && !meshed; c++) {
+        std::cout << "Integration anchor=" << kCandidates[c] << std::endl;
+        meshed = try_anchor(kCandidates[c]);
+        if (!meshed) std::cout << "  -> degenerate, retrying." << std::endl;
+    }
+
+    if (!meshed) {
+        std::cout << "Fixed candidates exhausted -- trying random anchors." << std::endl;
+        std::mt19937 rng(42);
+        std::uniform_real_distribution<double> dist(0.05, 0.95);
+        for (int r = 0; r < 20 && !meshed; r++) {
+            double anchor = dist(rng);
+            std::cout << "  random anchor=" << anchor << std::endl;
+            meshed = try_anchor(anchor);
+            if (!meshed) std::cout << "  -> degenerate, retrying." << std::endl;
+        }
+    }
+
+    if (!meshed) {
+        std::cerr << "WARNING: aligned remeshing failed. Falling back to isotropic triangle remeshing." << std::endl;
+        build_isotropic_triangle_mesh(isotropicSubdivisionSteps, VPolyMesh, DPolyMesh, FPolyMesh);
+        remeshResult = RemeshResult::ISOTROPIC_FALLBACK_FAILED_ALIGNMENT;
+    }
+
+    const char* remeshResultLabel = "aligned_remesh";
+    const char* remeshResultReason = "field integration and aligned remeshing succeeded";
+    switch (remeshResult) {
+        case RemeshResult::ALIGNED_REMESH:
+            break;
+        case RemeshResult::ISOTROPIC_FALLBACK_UMBILIC:
+            remeshResultLabel = "isotropic_fallback_umbilic";
+            remeshResultReason = "principal curvature directions were not reliable enough";
+            break;
+        case RemeshResult::ISOTROPIC_FALLBACK_FAILED_ALIGNMENT:
+            remeshResultLabel = "isotropic_fallback_failed_alignment";
+            remeshResultReason = "aligned remeshing stayed degenerate after all retries";
+            break;
+    }
+
+    std::cout << "Result status: " << remeshResultLabel << std::endl;
+    std::cout << "Result reason: " << remeshResultReason << std::endl;
+    std::cout << "Done!" << std::endl;
+
+    if (!headless) {
+        viewer.init();
+        viewer.set_surface_mesh(meshWhole);
+        viewer.toggle_mesh(false);
+        viewer.set_cartesian_field(combedField, std::to_string(fieldDegree) + "-field", 0);
+        viewer.set_isolines(meshCut, NFunction, std::to_string(fieldDegree) + "-function", 0);
+    }
+
+    // Directional viewer does not handle polygonal meshes directly, so the remeshed
+    // result is registered in Polyscope manually.
+    std::vector<std::vector<int>> psF; psF.resize(DPolyMesh.size());
+    for (int j = 0; j < DPolyMesh.size(); j++) {
+        psF[j].resize(DPolyMesh(j));
+        for (int k = 0; k < DPolyMesh(j); k++)
+            psF[j][k] = FPolyMesh(j, k);
+    }
+    if (!headless)
+        polygonalMesh = polyscope::registerSurfaceMesh("/cap-"+std::to_string(fieldDegree)+"-generated.off", VPolyMesh, psF);
+
+    hedra::polygonal_write_OFF(TUTORIAL_OUTPUT_PATH "/cap-"+std::to_string(fieldDegree)+"-generated.off", VPolyMesh, DPolyMesh, FPolyMesh);
+
+    if (!headless)
+        viewer.launch();
+}
